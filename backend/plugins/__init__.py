@@ -5,27 +5,27 @@
 import sys
 import os
 
-
-PLUGIN_BASE_MODULE_NAME= 'Plugin'
-PLUGIN_BASE_CLASS_NAME= 'Plugin'
+#PLUGIN_BASE_MODULE_NAME is the Plugin module of which all Plugins inherit
+PLUGIN_BASE_MODULE_NAME = 'Plugin'
+PLUGIN_BASE_CLASS_NAME = 'Plugin'
 
 def getPluginClasses():
     '''load and return a list of all Plugin derivates in the local modules'''
-    # the module name   "package.package. ... .name"
-    package= '.'.join(__name__.split('.')[:-1])
+    # the module name   "package.package. ... .name"    so only show the packages
+    package = '.'.join(__name__.split('.')[:-1])
     # directory of this file
-    dirPath= os.path.dirname(__file__) 
+    dirPath = os.path.dirname(__file__) 
     if package:
-        # might be nonlocal import
+        # might be nonlocal import, from another Plugin
         # 'package.package.'
-        package+= '.'
+        package += '.'
     # get the plugin class
-    pluginModuleName= package + PLUGIN_BASE_MODULE_NAME
+    pluginModuleName = package + PLUGIN_BASE_MODULE_NAME
     # enable simple import in Plugins as possible during tests
     sys.path.append(dirPath)
     try:
-        module= __import__(pluginModuleName)
-        Plugin= getattr(module, PLUGIN_BASE_CLASS_NAME)
+        module = __import__(pluginModuleName)
+        Plugin = getattr(module, PLUGIN_BASE_CLASS_NAME)
         assert isinstance(Plugin, type), "the Plugin base class should be a class"
         # fileList of the local directory
         fileList= os.listdir(dirPath)
@@ -45,7 +45,7 @@ def getPluginClasses():
                 module= __import__(package+modName)
             except ImportError:
                 continue
-            attributes= dir(module)
+            attributes = dir(module)
             # search for Plugin classes
             for attr in attributes:
                 if attr.startswith('_'):
@@ -77,8 +77,7 @@ __all__ = ['getPluginClasses']
 if __name__ == '__main__':
     # test module
 
-    # test getPlugins
+    # test getPluginClasses
     print ('-' * 50)
     print('test getPlugins')
     print(getPluginClasses())
-    
