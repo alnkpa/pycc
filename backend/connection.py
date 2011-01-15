@@ -18,7 +18,7 @@ class PyCCPackage(object):
 	    command: command (handle by plugins) [str]
 	    data: data of message [bytearray]"""
 	TYPE_REQUEST='A'
-	TYPE_REPONSE='O'
+	TYPE_RESPONSE='O'
 	TYPE_ERROR='E'
 
 	def __init__(self,connection=None,type=None,handle=None,command=None,data=None):
@@ -111,17 +111,25 @@ class PyCCConnection(object):
 		if not newData:
 			return False
 		if self._status == 'new':
-			if not newData.startswith('PyCC'):
-				raise ProtocolException
+			if not newData.startswith(bytearray(b'PyCC')):
+				raise ProtocolException(6,'wrong protocol (header)')
 			self.sendstr('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
-			return None
+			self._status='open'
+			print(newData)
+			newData=newData[newData.find(bytearray(b'\n'))+1:]
+			if len(newData)==0:
+				return None
 		elif self._status == 'init':
+			print(newData)
 			tmp=newData.decode('utf8').split("|")
 			if len(tmp)!=3:
 				raise ProtocolException(3,'unknown init')
-			self.sendstr('OK. {0}\n'.format(tmp[1]))
+			if tmp[1].find(',')>-1:
+				self.sendstr('OK. {0}\n'.format(tmp[1].split(',')[-1]))
 			self._status = 'open'
-			return None
+			newData=newData[newData.find(bytearray(b'\n'))+1:]
+			if len(newData)==0:
+				return None
 
 		self._buffer += newData
 		result=self._parseMessageStart()
@@ -200,10 +208,10 @@ class PyCCConnection(object):
 	def recv(self, bufsize= 8192):
 		'''receive up to 8192 bytes of data'''
 		# fix: need a handler for invalid packages
-		data=self.socket.recv(bufsize).decode('utf8')
-		if self.status == 'new':
+		data=self._socket.recv(bufsize).decode('utf8')
+		if self._status == 'new':
 			self.sendstr('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
-			self.status = 'init'
+			self._status = 'init'
 
 	def fileno(self):
 		''' file handle for select.select'''

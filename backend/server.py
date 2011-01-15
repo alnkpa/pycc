@@ -51,10 +51,7 @@ class PyCCBackendServer(object):
 						elif type(parsed) is backend.connection.PyCCPackage:
 							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
 								self.handleCommand(sock,parsed)
-				except backend.connection.ProtocolException as e:
-					print("{0}: {1}".format(type(e),e))
-					self.clientConnectionClosed(sock)
-				except socket.error as e:
+				except (backend.connection.ProtocolException,socket.error) as e:
 					print("{0}: {1}".format(type(e),e))
 					self.clientConnectionClosed(sock)
 
@@ -66,11 +63,15 @@ class PyCCBackendServer(object):
 		print("+++ connection from %s" % ip)
 
 	def clientConnectionClosed(self,clientSocket):
-		ip = clientSocket.getpeername()[0]
-		print("+++ connection to %s closed" % ip)
-		self.plugins.clientConnectionClosed(clientSocket)
-		clientSocket.close()
-		self.clients.remove(clientSocket)
+		try:
+			ip = clientSocket.getpeername()[0]
+			print("+++ connection to %s closed" % ip)
+			self.plugins.clientConnectionClosed(clientSocket)
+			clientSocket.close()
+		except socket.error:
+			pass
+		finally:
+			self.clients.remove(clientSocket)
 
 	def handleCommand(self,clientSocket,conElement):
 		ip = clientSocket.getpeername()[0]
