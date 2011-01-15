@@ -6,13 +6,16 @@ except ImportError:
 class Backend(object):
 	'''Implements a backend'''
 	
+	#at start, the backend has no plugins
 	def __init__(self):
 		self.plugins = []
 	
+	#Save the tuple of name, plugin and priority in the plugins list
 	def registerPlugin(self, name, plugin, priority):
 		self.plugins.append((name, plugin, priority))
 		self.plugins.sort(key=lambda t: t[2])
 	
+	#has to be 
 	def send(self, data):
 		print("backend received: ", data)
 	
