@@ -66,6 +66,6 @@ class ContactPlugin(Plugin.Plugin):
 		sendcommand(package)
 
 	def shutdown(self):
-		f=file.open(".contacts","w")
-		for contact in contacts:		
+		f=open(".contacts","w")
+		for contact in self.contacts:		
 			f.write(contact[0]+":"+contact[1])

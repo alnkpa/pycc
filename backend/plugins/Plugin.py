@@ -46,6 +46,8 @@ this method should not be overwritten'''
 			reg = self.PyCCManager.registerPlugin
 			for comm in comm:
 				reg(comm, self, self.priority)
+		elif comm is None:
+			pass		
 		else:
 			raise ValueError('invalid value for attribute registeredCommands {0}'.format(comm))
 
