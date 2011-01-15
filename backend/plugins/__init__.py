@@ -4,6 +4,7 @@
 '''
 import sys
 import os
+from manager import PyCCBackendPluginManager
 
 #PLUGIN_BASE_MODULE_NAME is the Plugin module of which all Plugins inherit
 PLUGIN_BASE_MODULE_NAME = 'Plugin'
