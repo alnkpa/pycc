@@ -1,83 +1,77 @@
+''' GUI for PYCC with resizing elements '''
+
 import tkinter as tk
 
-root = tk.Tk()
-root.title("PYCC")
+class MainWindow(tk.Tk):
 
-# functions
-def displayContacts(a=0):
-	print("Display Contacts")
+	def __init__(self):
+		''' creating and packing elements of the GUI '''
+		tk.Tk.__init__(self)
+		self.title("PYCC")
 
-def displayPreferences(a=0):
-	print("Display Preferences")
+		# chat selection
+		self.fChatSelection = tk.Frame(self)
+		self.fChatSelection.grid(row = 0, column = 0)
 
-def send(a=0):
-	print("Send a message")
+		# selection between contact list and preferences
+		self.fMenue = tk.Frame(self)
+		self.fMenue.grid(row = 0, column = 1)
+		self.bContacts = tk.Button(self.fMenue, text = 'C', command = self.displayContacts)
+		self.bContacts.pack(side = 'left')
+		self.bPreferences = tk.Button(self.fMenue, text = 'P', command = self.displayPreferences)
+		self.bPreferences.pack(side = 'left')
 
-# menue frame
-fMenue = tk.Frame(root)
+		# chat window
+		self.fChatWindow = tk.Frame(self)	
+		self.fChatWindow.grid(row = 1, column = 0, sticky = 'nswe')
+		self.sChatWindow = tk.Scrollbar(self.fChatWindow)
+		self.sChatWindow.pack(side = 'right', fill = 'y')	
+		self.tChatWindow = tk.Text(self.fChatWindow, yscrollcommand = self.sChatWindow.set, height = 20)
+		self.tChatWindow.pack(side = 'left', fill = 'both', expand = True)
+		self.sChatWindow.config(command = self.tChatWindow.yview)
 
-bContacts = tk.Button(fMenue, text = "C", command = displayContacts)
-bContacts.pack(side = tk.LEFT)
-bPreferences = tk.Button(fMenue, text = "P", command = displayPreferences)
-bPreferences.pack(side = tk.RIGHT)
+		# input window
+		self.fText = tk.Frame(self)	
+		self.fText.grid(row = 2, column = 0, sticky = 'nswe')
+		self.sText = tk.Scrollbar(self.fText)
+		self.sText.pack(side = 'right', fill = 'y')	
+		self.tText = tk.Text(self.fText, yscrollcommand = self.sText.set, height = 4)
+		self.tText.pack(side = 'left', fill = 'x', expand = True)
+		self.sText.config(command = self.tText.yview)
 
-fMenue.grid(row = 0, column = 1)
+		# contact list
+		self.fContacts = tk.Frame(self)	
+		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
+		self.sContacts = tk.Scrollbar(self.fContacts)
+		self.sContacts.pack(side = 'right', fill = 'y')	
+		self.lContacts = tk.Listbox(self.fContacts, yscrollcommand = self.sContacts.set)
+		self.lContacts.pack(side = 'left', fill = 'y')
+		self.sContacts.config(command = self.lContacts.yview)
+		
+		# preferences
+		self.fPreferences = tk.Frame(self)
+		self.lPreferences = tk.Label(self.fPreferences, text = 'Preferences')
+		self.lPreferences.pack()
+		
+		# send button
+		self.bSend = tk.Button(self, text = 'Send')
+		self.bSend.grid(row = 3, column = 0, sticky = 'w')
 
-# preferences frame
-fPreferences = tk.Frame(root)
-lPref = tk.Label(fPreferences, text = "Einstellungen")
-lPref.pack()
+		# define expanding rows and columns
+		self.rowconfigure(1 , weight = 1)
+		self.columnconfigure(0 , weight = 1)
 
-# contact list frame
-fContacts = tk.Frame(root)
-fContactsScrollbar = tk.Scrollbar(fContacts)
-fContactsScrollbar.pack(side = tk.RIGHT, fill = tk.Y)
+	def displayPreferences(self):
+		self.fContacts.grid_forget()
+		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 
-fContactsList = tk.Listbox(fContacts, height= 27, yscrollcommand = fContactsScrollbar.set)
-fContactsList.pack(side = tk.LEFT, fill = tk.BOTH)
-fContactsScrollbar.config(command = fContactsList.yview)
+	def displayContacts(self):
+		self.fPreferences.grid_forget()
+		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 
-fContacts.grid(row = 1, column = 1, rowspan = 3)
-
-# chat selection frame
-fChatSelection = tk.Frame(root)
-
-
-
-# chat window frame
-fChatWindow = tk.Frame(root)
-
-fChatWindowScrollbar = tk.Scrollbar(fChatWindow)
-fChatWindowScrollbar.pack(side = tk.RIGHT, fill = tk.Y)
-fChatWindowText = tk.Text(fChatWindow, yscrollcommand = fChatWindowScrollbar.set)
-fChatWindowText.pack(side = tk.LEFT, fill = tk.BOTH)
-fChatWindowScrollbar.config(command = fChatWindowText.yview)
-fChatWindow.grid(row = 1, column = 0)
-
-# chat entry frame
-fText = tk.Frame(root)
-
-fTextScrollbar = tk.Scrollbar(fText)
-fTextText = tk.Text(fText, yscrollcommand = fTextScrollbar.set, height = 4, width = 72)
-fTextText.pack(side = tk.LEFT, fill = tk.BOTH)
-fTextScrollbar.config(command = fTextText.yview)
-bSend = tk.Button(fText, text = "Send", command = send)
-bSend.pack(side = tk.RIGHT, fill = tk.Y)
-fTextScrollbar.pack(side = tk.RIGHT, fill = tk.Y)
-
-fText.grid(row = 2, column = 0)
-
-#Methoden:
-def empfange(msg, addr):
-	pass
-
-def sende(msg, addr):
-	print(msg)
+# open window if not imported
+if __name__ == '__main__':
+	window = MainWindow()
+	window.mainloop()
 
 
-
-root.mainloop()
-
-## send button
-#bSend = tk.Button(root, text = "Send", command = send)
-#bSend.grid(row = 3, column = 0)
