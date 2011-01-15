@@ -13,20 +13,20 @@ class PyCCBackendPluginManager(object):
 		''' method is called directly before the server will stuting down'''
 		pass
 
-	def clientConnectionOpened(self,clientSocket):
+	def clientConnectionOpened(self,client):
 		''' method is called directly after a new connection to the server was opened
-		    clientSocket: client connection (PyCCConnection)'''
+		    client: client connection (PyCCConnection)'''
 		pass
 
-	def clientConnectionClosed(self,clientSocket):
+	def clientConnectionClosed(self,client):
 		''' method is called directly after a client connection has been closed
-		    clientSocket: client connection (PyCCConnection)'''
+		    client: client connection (PyCCConnection)'''
 		pass
 
-	def handleCommand(self,clientSocket,comHandle,command,message):
+	def handleCommand(self,client,comHandle,command,data):
 		''' method is called for handle a command request
 		    clientSocket: client connection (PyCCConnection)
 		    comHandle: identifier of the corresponding request
 		    command: command name
-		    message: message of command'''
+		    data: message of command'''
 		pass
