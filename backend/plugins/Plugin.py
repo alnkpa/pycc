@@ -43,6 +43,9 @@ this method should not be overwritten'''
 			self.PyCCManager.registerPlugin(name, self,\
 							self.priority)
 
+	def startup(self):
+		pass
+
 	def shutdown(self):
 		'''this method shuts down the Plugin
 
