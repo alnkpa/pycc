@@ -12,7 +12,7 @@ PluginClass.priority
 	higher priority.
 '''
 	#names under which the plugins wants to be registered
-	registeredName=None
+	registeredCommands=None
 	priority=0
 	
 	#any plugin will be bound to a PyCCManager at its initialisation
@@ -38,10 +38,16 @@ con is of type backend.connection.PyCCPackage
 		'''register this Plugin in the manager
 
 this method should not be overwritten'''
-		name= self.registeredName
-		if name is not None:
-			self.PyCCManager.registerPlugin(name, self,\
+		comm= self.registeredCommands
+		if type(comm) is str:
+			self.PyCCManager.registerPlugin(comm, self,\
 							self.priority)
+		elif hasattr(comm, '__iter__'):
+			reg = self.PyCCManager.registerPlugin
+			for comm in comm:
+				reg(comm, self, self.priority)
+		else:
+			raise ValueError('invalid value for attribute registeredCommands {0}'.format(comm))
 
 	def startup(self):
 		pass
