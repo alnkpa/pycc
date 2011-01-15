@@ -52,8 +52,8 @@ class PyCCBackendServer(object):
 						parsed=sock.parseInput()
 						if parsed is False :
 							self.clientConnectionClosed(sock)
-						elif type(parsed) is backend.connection.PyCCConnectionElement:
-							if parsed.type == backend.connection.PyCCConnectionElement.TYPE_REQUEST: #Request
+						elif type(parsed) is backend.connection.PyCCPackage:
+							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
 								self.handleCommand(sock,parsed)
 				except backend.connection.ProtocolException as e:
 					print("{0}: {1}".format(type(e),e))

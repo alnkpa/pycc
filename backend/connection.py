@@ -7,7 +7,7 @@ class ProtocolException(Exception):
 	def __str__(self):
 		return "ProtocolException: {0} - {1}".format(self.type,self.message)
 
-class PyCCConnectionElement(object):
+class PyCCPackage(object):
 	TYPE_REQUEST='A'
 	TYPE_REPONSE='O'
 	TYPE_ERROR='E'
@@ -41,15 +41,15 @@ class PyCCConnection(object):
 		self._buffer=bytearray()
 
 	def _parseMessageStart(self):
-		self._element = PyCCConnectionElement(connection=self)
+		self._element = PyCCPackage(connection=self)
 		self._boundary = None
 		# Extract MessageType:
 		if self._buffer[0]==bytearray(b'A')[0]:
-			self._element.type=PyCCConnectionElement.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_REQUEST
 		elif self._buffer[0]==bytearray(b'O')[0]:
-			self._element.type=PyCCConnectionElement.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_REQUEST
 		elif self._buffer[0]==bytearray(b'E')[0]:
-			self._element.type=PyCCConnectionElement.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_REQUEST
 		else:
 			raise ProtocolException(1,'unknown message type')
 		# Extract ComHandle:
