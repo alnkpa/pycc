@@ -8,7 +8,8 @@ import backend.connection
 
 class PyCCBackendServer(object):
 
-	def __init__(self):
+	def __init__(self,id):
+		self.serverID=id
 		self.server = None
 		self.serverAddr = None
 		self.serverPort = None
