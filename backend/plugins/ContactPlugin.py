@@ -2,6 +2,7 @@ import Plugin
 
 class ContactPlugin(Plugin.Plugin):
 	''' Manages all the Contacts '''
+	registeredCommands = ["addAccount","deleteAccount","getAccountName","getAccountHash","getAccounts"]	
 	def __init__(self,PyCCManager):
 		'''initially get all '''
 		Plugin.Plugin.__init__(self,PyCCManager)
@@ -17,8 +18,10 @@ class ContactPlugin(Plugin.Plugin):
 			self.addAccount(data)
 		elif package.command=="deleteAccount":
 			self.deleteAccount(data)
-		elif package.command=="getAccount":
+		elif package.command=="getAccountName":
 			self.getAccountName(package.data,package)
+		elif	package.command=="getAccountHash":
+			self.getAccountHash(package.data,package)
 		elif package.command=="getAccounts":
 			self.getAccounts(package)
 	
