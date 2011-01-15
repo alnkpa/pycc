@@ -1,4 +1,3 @@
-
 import socket
 
 class ProtocolException(Exception):
@@ -14,10 +13,10 @@ class PyCCPackage(object):
 	    response and error messages of the PyCC protocol
 
 	    connection: connection to client [PyCCConnection]
-	    type: message type (request, response, error)
-	    handle: message identifier - nesessary to assign responses to requests
-	    command: command (handle by plugins)
-	    data: data of message"""
+	    type: message type (request, response, error) [str:A,O,E]
+	    handle: message identifier - nesessary to assign responses to requests [?]
+	    command: command (handle by plugins) [str]
+	    data: data of message [bytearray]"""
 	TYPE_REQUEST='A'
 	TYPE_REPONSE='O'
 	TYPE_ERROR='E'
@@ -30,7 +29,7 @@ class PyCCPackage(object):
 		self.data=data
 
 	def __str__(self):
-		return 'PyCCCE:{0}{1}:{2}|{3}\n'.format(self.type,
+		return 'PyCCP:{0}{1}:{2}|{3}'.format(self.type,
 			self.handle,self.command,self.data)
 
 
@@ -47,7 +46,7 @@ class PyCCConnection(object):
 		self._boundary = None
 		if self._mode == 'server':
 			self._nextComHandle = 0
-			self.send('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
+			self.sendstr('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
 			self._status='init'
 		else:
 			self._nextComHandle = 1
@@ -60,9 +59,9 @@ class PyCCConnection(object):
 		if self._buffer[0]==bytearray(b'A')[0]:
 			self._element.type=PyCCPackage.TYPE_REQUEST
 		elif self._buffer[0]==bytearray(b'O')[0]:
-			self._element.type=PyCCPackage.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_RESPONSE
 		elif self._buffer[0]==bytearray(b'E')[0]:
-			self._element.type=PyCCPackage.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_ERROR
 		else:
 			raise ProtocolException(1,'unknown message type')
 		# Extract ComHandle:
@@ -77,21 +76,23 @@ class PyCCConnection(object):
 			raise ProtocolException(3,'invalid comHandle')
 		# Extract endline
 		posEndLine=posEndHandle+1
-		while posEndLine<len(self._buffer) and (self._buffer[posEndLine]!=bytearray(b'\n')[0]):
-			posEndLine+=1
-		if posEndLine>=len(self._buffer):
-			return False
-		tmp=self._buffer[posEndHandle+1:posEndLine].decode('utf8').split(',')
-		if len(tmp)==2:
-			self._boundary=tmp[0]
-			self._element.command=tmp[1]
+		try:
+			while (self._buffer[posEndLine]!=bytearray(b'\n')[0]):
+				posEndLine+=1
+		except IndexError:
+			return None
+		posEndBoundary=posEndHandle+1
+		try:
+			while (self._buffer[posEndBoundary]!=bytearray(b',')[0]):
+				posEndBoundary+=1
+		except IndexError:
+			self._boundary=False
+			self._element.command=self._buffer[posEndHandle+1:posEndLine].decode('utf8').rstrip()
 			return True
 		else: # no boundary
-			self._boundary=False
-			self._element.command=tmp[0]
-			return True
-		return posEndLine
-
+			self._boundary=self._buffer[posEndHandle+1:posEndBoundary]
+			self._element.command=self._buffer[posEndBoundary+1:posEndLine].decode('utf8').rstrip()
+			return posEndLine
 
 	def parseInput(self):
 		""" parse new unread data in the socket
@@ -108,36 +109,37 @@ class PyCCConnection(object):
 		if self._status == 'new':
 			if not newData.startswith('PyCC'):
 				raise ProtocolException
-			self.send('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
+			self.sendstr('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
 			return None
 		elif self._status == 'init':
 			tmp=newData.decode('utf8').split("|")
 			if len(tmp)!=3:
 				raise ProtocolException(3,'unknown init')
-			self.send('OK. {0}\n'.format(tmp[1]))
+			self.sendstr('OK. {0}\n'.format(tmp[1]))
 			self._status = 'open'
 			return None
 
 		self._buffer += newData
-		if self._boundary == None:
-			result=self._parseMessageStart()
-			if result == False: # not all data received
-				print('more data needed')
-				return
-			elif result is True: # no boundary set -> one line
-				self._element.data = self._buffer[result:]
-				self._buffer = self._buffer=bytearray()
+		result=self._parseMessageStart()
+		if result == False: # not all data received
+			return
+		elif result is True: # no boundary set -> one line
+			self._element.data = self._buffer[result:]
+			self._buffer = self._buffer=bytearray()
+			self._boundary = None
+			return self._element
+		elif type(result) is int:
+			pos = self._buffer.find(self._boundary,result)
+			if pos == -1: # boundry not yet recieved
+				return None
+			else:
+				self._element.data = self._buffer[result+1:pos]
+				#FixMe:
+				# Idea: self._buffer = self._buffer[pos+len(self._boundary)+1:]
+				# Problem: ending \r\n
+				self._buffer = bytearray()
 				self._boundary = None
 				return self._element
-			elif result is int:
-				pos = self._buffer[result:].find(self.boundary)
-				if pos == -1: # boundry not yet recieved
-					return False
-				else:
-					self._element.data = self._buffer[result:pos]
-					self._buffer = self._buffer[pos+len(self.boundary)]
-					self._boundary = None
-		return self._element
 
 	def newRequest(self):
 		""" build handle for a new reqeust"""
@@ -148,48 +150,55 @@ class PyCCConnection(object):
 		'''send new request to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		message='A{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='',
+			.format(comHandle=package.handle,endBoundary='EOF',
 			command=package.command).encode('utf8')
-		if endpackage.data is str:
-			message+=data.encode('utf8')
+		if package.data is str:
+			message+=package.data.encode('utf8')
 		else:
-			message+=data
+			message+=package.data
+		message+=b'EOF'
 		self.send(message)
 
 	def sendResponse(self, package):
 		'''send new response to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		message='O{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='',
+			.format(comHandle=package.handle,endBoundary='EOF',
 			command=package.command).encode('utf8')
-		if endpackage.data is str:
-			message+=data.encode('utf8')
+		if package.data is str:
+			message+=package.data.encode('utf8')
 		else:
-			message+=data
+			message+=package.data
+		message+=b'EOF'
 		self.send(message)
 	def sendErrors(self, package):
 		'''send error to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		message='E{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='',
+			.format(comHandle=package.handle,endBoundary='EOF',
 			command=package.command).encode('utf8')
-		if ackage.data is str:
-			message+=data.encode('utf8')
+		if package.data is str:
+			message+=package.data.encode('utf8')
 		else:
-			message+=data
+			message+=package.data
+		message+=b'EOF'
 		self.send(message)
 
 
 	def send(self,data):
 		'''send all data to the recipient'''
-		return self._socket.sendall(bytes(data,encoding='utf8'))
+		return self._socket.sendall(data)
+
+	def sendstr(self,data):
+		'''send all data to the recipient'''
+		return self._socket.sendall(data.encode('utf8'))
 
 	def recv(self, bufsize= 8192):
 		'''receive up to 8192 bytes of data'''
 		# fix: need a handler for invalid packages
 		data=self.socket.recv(bufsize).decode('utf8')
 		if self.status == 'new':
-			self.send('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
+			self.sendstr('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
 			self.status = 'init'
 
 	def fileno(self):

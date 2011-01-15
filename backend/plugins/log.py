@@ -1,7 +1,7 @@
 import Plugin
 
 class LogPlugin(Plugin.Plugin):
-	registeredName=""
+	registeredCommands=""
 	priority=5
 
 	def startup(self):
