@@ -3,7 +3,9 @@
 
 '''
 import os
-import Plugin
+
+PLUGIN_BASE_MODULE_NAME= 'Plugin'
+PLUGIN_BASE_CLASS_NAME= 'Plugin'
 
 def getPluginClasses():
     '''load and return a list of all Plugin derivates in the local modules'''
@@ -17,6 +19,11 @@ def getPluginClasses():
         # might be nonlocal import
         # 'package.package.'
         package+= '.'
+    # get the plugin class
+    pluginModuleName= package + PLUGIN_BASE_MODULE_NAME
+    module= __import__(pluginModuleName)
+    Plugin= getattr(module, PLUGIN_BASE_CLASS_NAME)
+    assert isinstance(Plugin, type), "the Plugin base class should be a class"
     # fileList of the local directory
     fileList= os.listdir(dirPath)
     # load the plugins in order
@@ -50,7 +57,7 @@ def getPluginClasses():
             # 2. issubclass only on classes -> find Plugin derivates
             # 3. assure we do not load plugins twice
             if isinstance(cls, type) and \
-               issubclass(cls, Plugin.Plugin) and\
+               issubclass(cls, Plugin) and\
                cls not in pluginClasses:
                 pluginClasses.append(cls)
     return pluginClasses
