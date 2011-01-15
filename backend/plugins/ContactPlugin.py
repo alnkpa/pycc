@@ -1,47 +1,52 @@
 import Plugin
 
-class ContactPlugin(Plugin):
+class ContactPlugin(Plugin.Plugin):
 	''' Manages all the Contacts '''
-	def __init__
+	def __init__(self,PyCCManager):
 		'''initially get all '''
+		Plugin.Plugin.__init__(self,PyCCManager)
 		self.contacts = []
 		f = open(".contacts")
-		for line in f.readlines()
-			contacts.append((line.strip().split(":")[0],line.strip().split(":")[1]))		
+		append = self.contacts.append
+		for line in f.readlines():
+			append((line.strip().split(":")[0],line.strip().split(":")[1]))		
 
-	def recvcommand(self,package)	
+	def recvcommand(self,package):
 		''' Processes the given Command'''
 		if package.command=="addAccount":
-			self.addAccount(data):
+			self.addAccount(data)
 		elif package.command=="deleteAccount":
-			self.deleteAccount(data):
-		elif package.command=="getAccount"
-			self.getAccountName(package.data,package):
-		elif package.command="getAccounts":
+			self.deleteAccount(data)
+		elif package.command=="getAccount":
+			self.getAccountName(package.data,package)
+		elif package.command=="getAccounts":
 			self.getAccounts(package)
 	
 	def addAccount(self,data):
-		'''Adds a new contact to the contact storage'''
+		'''Adds a new contact to the contact storage'''		
 		accountHash, accountName = data.split(":")		
-		contacts.append[(accountHash,accountName)]
+		contacts.append((accountHash,accountName))
 		
 	def deleteAccount(self,data):
 		'''Deletes a specific account by Name'''		
-		contacts.remove((data, returnAccountHash(data)))
-		
+		try:		
+			self.contacts.remove((data, returnAccountHash(data)))
+		except ValueError:			
+			pass
+
 	def getAccountName(self,accountHash):
 		'''Get a specific accountName'''
-		for contact in contacts:
+		for contact in self.contacts:
 			if contact[0]==accountHash:
 				package.data = contact[1]				
-				sendcommand(package)	
+				sendcommand(package) 	#fixthat	
 
 	def getAccountHash(self,accountName):
 		'''Get a specific accontHash'''
 		for contact in contacts:
 			if contact[1]==accountName:
 				package.data = contact[0]				
-				sendcommand(package)
+				sendcommand(package)	#fixthat
 
 	def returnAccountHash(self,accountName):
 		'''Get a specific accontHash'''
@@ -49,10 +54,15 @@ class ContactPlugin(Plugin):
 			if contact[1]==accountName:
 				return contact[0]
 
-	def getAccounts(package)
+	def getAccounts(package):
 		'''Get all of the accounts, comma seperated accountHash:accountName pairs are returned'''		
 		string=""		
-		for contact in contacts:
-			string=string+contact[0],contact[1]
+		for contact in self.contacts:
+			string=string+contact[0]+":"+contact[1]
 		package.data=string
 		sendcommand(package)
+
+	def shutdown(self):
+		f=file.open(".contacts","w")
+		for contact in contacts:		
+			f.write(contact[0]+":"+contact[1])

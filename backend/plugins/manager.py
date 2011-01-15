@@ -38,7 +38,7 @@ def getPluginClasses():
         for pModuleFile in fileList:
             # split .py or .pyc from file name
             modName, ext= os.path.splitext(pModuleFile)
-            if modName.startswith('_'):
+            if modName.startswith('_') or ext not in(".py",".pyw"):
                 # do not load _modules
                 continue
             try:
