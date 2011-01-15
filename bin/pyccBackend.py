@@ -17,15 +17,9 @@ import backend.config
 import backend.server
 import importlib
 import backend.plugins.Plugin
-import hashlib
 
 config=backend.config.PyCCBackendConfig()
-backendID=config.getstr('network','id')
-
-if backendID is None:
-	backendID=hashlib.sha1("|".join(sys.path).encode('utf8'))
-
-server=backend.server.PyCCBackendServer(backendID)
+server=backend.server.PyCCBackendServer(config.getNodeID())
 
 # default value
 port = config.getint('network','port')
