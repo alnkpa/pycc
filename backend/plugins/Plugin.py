@@ -1,10 +1,18 @@
 class Plugin(object):
-	'''This class defines all Plugins
+	'''This class is tge base of all Plugins
 	
-	It defines some methods, that all plugins need and use
-	Any plugin will be derived from this class'''
+	It defines methods that all plugins need and use
+	Every plugin will be derived from this class
+
+PluginClass.registerdName 
+	is the string all commands for the plugin start with.
+PluginClass.priority 
+	is the priority relative to other plugins.
+	PluginClass.recvCommand is called first for Plugins with 
+	higher priority.
+'''
 	#names under which the plugins wants to be registered
-	registeredName=""
+	registeredName=None
 	priority=0
 	
 	#any plugin will be bound to a PyCCManager at its initialisation
@@ -16,11 +24,18 @@ class Plugin(object):
 		self.PyCCManager.send(command, data)
 
 	#Any command send from the PyCCManager will be here
-	def recvCommand(self, *args):
+	def recvCommand(self, con):
 		pass
 
 	#tell the register that you want be registered with it
 	def registerInManager(self):
-		self.PyCCManager.registerPlugin(self.registeredName, self, self.priority)
+		name= self.registeredName
+		if name is not None:
+			self.PyCCManager.registerPlugin(name, self,\
+							self.priority)
+
+	def startup(self):
+		pass
+
 	def shutdown(self):
 		pass
