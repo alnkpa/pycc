@@ -3,6 +3,9 @@ import sys
 sys.path.append('.')
 sys.path.append('./backend')
 sys.path.append('./backend/plugins')
+sys.path.append('..')
+sys.path.append('../backend')
+sys.path.append('../backend/plugins')
 import backend
 import backend.config
 import backend.server
@@ -25,7 +28,7 @@ searchPort= True
 
 # loading arguments
 argIndex= 1
-while i < len(sys.argv):
+while argIndex < len(sys.argv):
 	arg= sys.argv[argIndex]
 	argIndex+= 1
 	if arg == '-searchPort':
