@@ -81,7 +81,4 @@ class PyCCBackendServer(object):
 		print("[%s] %s" % (ip, conElement))
 		if conElement.command.strip() == 'shutdown':
 			self.read = False
-		self.plugins.handleCommand(clientSocket,conElement) # FixMe
-		
-	def registerPlugin(self,plugin):
-		self.plugins.registerPlugin(plugin)
+		self.plugins.handleCommand(conElement)

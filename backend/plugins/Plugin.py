@@ -34,5 +34,8 @@ PluginClass.priority
 			self.PyCCManager.registerPlugin(name, self,\
 							self.priority)
 
+	def startup(self):
+		pass
+
 	def shutdown(self):
 		pass

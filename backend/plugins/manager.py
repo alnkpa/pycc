@@ -36,7 +36,6 @@ def getPluginClasses():
         # list of the Plugin classes - classes derived from Plugin
         pluginClasses= []
         for pModuleFile in fileList:
-            print (pModuleFile)
             # split .py or .pyc from file name
             modName, ext= os.path.splitext(pModuleFile)
             if modName.startswith('_'):
@@ -95,6 +94,8 @@ class PyCCBackendPluginManager(object):
 	def startup(self):
 		''' method is called directly after the server has started up'''
 		self.loadPlugins()
+		for plu in self.plugins:
+			plu[1].startup()
 
 	def shutdown(self):
 		''' method is called directly before the server will stuting down'''
