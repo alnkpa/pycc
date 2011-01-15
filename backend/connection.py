@@ -1,3 +1,5 @@
+import socket
+
 class ProtocolException(Exception):
 	pass
 
@@ -16,7 +18,8 @@ class PyCCConnection(object):
 			self.nextComHandle = 1
 
 	def send(self,data):
-		self.socket.send(bytes(data,encoding='utf8'))
+		'''send all data to the recipient'''
+		return self.socket.sendall(bytes(data,encoding='utf8'))
 
 	def fileno(self):
 		''' file handle for select.select'''
@@ -25,8 +28,15 @@ class PyCCConnection(object):
 	def getpeername(self):
 		return self.socket.getpeername()
 
-	def close(self):
-		return self.socket.close()
+	def close(self, *args):
+		'''shut down the socket connection 
+
+optimal argument is
+socket.SHUT_RD = 0
+socket.SHUT_RDWR = 2
+socket.SHUT_WR = 1
+'''
+		return self.socket.close(*args)
 
 	def parseInput(self):
 		message=self.socket.recv(1024).decode('utf8')
@@ -64,3 +74,9 @@ class PyCCConnection(object):
 
 	def sendError(self, comHandle, message):
 		self.send('E{comHandle}:{data}'.format(comHandle).format(data))
+
+	def recv(self, bufsize= 8192):
+		'''receive up to 8192 bytes of data'''
+		# fix: need a handler for invalid packages
+		return self.socket.recv(bufsize).decode('utf8')
+
