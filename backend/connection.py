@@ -146,31 +146,34 @@ class PyCCConnection(object):
 
 	def sendRequest(self, package):
 		'''send new request to connection partner
-		package: data to send (not all data uses e.g. type)'''
-		message='A{comHandle}:{endBoundary},{command}\n'\
-			.format(comHandle).format(data).encode('utf8')
-		if data is str:
+		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
+		message='A{comHandle}:{endBoundary}{command}\n'\
+			.format(comHandle=package.handle,endBoundary='',
+			command=package.command).encode('utf8')
+		if endpackage.data is str:
 			message+=data.encode('utf8')
 		else:
 			message+=data
 		self.send(message)
 
-	def sendResponse(self, comHandle, command, data=None):
+	def sendResponse(self, package):
 		'''send new response to connection partner
-		package: data to send (not all data uses e.g. type)'''
-		message='O{comHandle}:{endBoundary},{command}\n'\
-			.format(comHandle).format(data).encode('utf8')
-		if data is str:
+		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
+		message='O{comHandle}:{endBoundary}{command}\n'\
+			.format(comHandle=package.handle,endBoundary='',
+			command=package.command).encode('utf8')
+		if endpackage.data is str:
 			message+=data.encode('utf8')
 		else:
 			message+=data
 		self.send(message)
-	def sendErrors(self, comHandle, command, data=None):
+	def sendErrors(self, package):
 		'''send error to connection partner
-		package: data to send (not all data uses e.g. type)'''
-		message='E{comHandle}:{endBoundary},{command}\n'\
-			.format(comHandle).format(data).encode('utf8')
-		if data is str:
+		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
+		message='E{comHandle}:{endBoundary}{command}\n'\
+			.format(comHandle=package.handle,endBoundary='',
+			command=package.command).encode('utf8')
+		if ackage.data is str:
 			message+=data.encode('utf8')
 		else:
 			message+=data
