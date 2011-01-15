@@ -15,12 +15,18 @@ contactsScrollbar = tkinter.Scrollbar(fContacts)
 contacts = tkinter.Listbox(fContacts, yscrollcommand = contactsScrollbar)
 #add contactsScrollbar to the right side of the frame and stretch vertical
 contactsScrollbar.pack(side = tkinter.RIGHT, fill = tkinter.Y)
+contactsScrollbar.config(command = contacts.yview)
 
 contacts.pack(fill = tkinter.Y)
 fContacts.pack(side = tkinter.LEFT)
 
 
+contacts.insert(tkinter.END, "Joseph")
+contacts.insert(tkinter.END, "Anita")
 contacts.insert(tkinter.END, "Kirstin")
+contacts.insert(tkinter.END, "Aileen")
+contacts.insert(tkinter.END, "Joseph")
+contacts.insert(tkinter.END, "Anita")
 contacts.insert(tkinter.END, "Aileen")
 contacts.insert(tkinter.END, "Joseph")
 contacts.insert(tkinter.END, "Anita")
