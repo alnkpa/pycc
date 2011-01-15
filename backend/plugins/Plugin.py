@@ -31,7 +31,8 @@ PluginClass.priority
 
 con is of type backend.connection.PyCCPackage
 '''
-		pass
+		raise NotImplementedError('if you see this you forgot to implement \
+recvComment(self, con) in your Plugin.')
 
 	#tell the register that you want be registered with it
 	def registerInManager(self):
