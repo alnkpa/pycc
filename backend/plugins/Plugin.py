@@ -17,22 +17,36 @@ PluginClass.priority
 	
 	#any plugin will be bound to a PyCCManager at its initialisation
 	def __init__(self, PyCCManager):
+		'''all Plugins are initialized with a manager class'''
 		self.PyCCManager = PyCCManager
 
-	#This class sends a command to the PyCCManager
+	#This method sends a command to the PyCCManager
 	def sendCommand(self, command, data):
+		'''send a command to the PyCCManager - not yet ready for use'''
 		self.PyCCManager.send(command, data)
 
 	#Any command send from the PyCCManager will be here
 	def recvCommand(self, con):
+		'''all commands for this plugin are passed to this function
+
+con is of type backend.connection.PyCCPackage
+'''
 		pass
 
 	#tell the register that you want be registered with it
 	def registerInManager(self):
+		'''register this Plugin in the manager
+
+this method should not be overwritten'''
 		name= self.registeredName
 		if name is not None:
 			self.PyCCManager.registerPlugin(name, self,\
 							self.priority)
 
 	def shutdown(self):
+		'''this method shuts down the Plugin
+
+It is called after all commands are handled.
+The Plugin will not be used afterwards.
+'''
 		pass
