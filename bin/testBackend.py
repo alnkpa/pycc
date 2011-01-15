@@ -13,17 +13,18 @@ try:
 	with open('.port') as file:
 		port=int(file.readline().strip())
 	socket.connect(('127.0.0.1', port))
-	con=backend.connection.PyCCConnection(socket)
+	con=backend.connection.PyCCConnection(socket,'testBackend')
 
 	for i in range(4):
+		#con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command='echo'))
 		input=con.parseInput()
 		if type(input) is backend.connection.PyCCPackage:
 			input.dump()
 		else:
 			print(input)
-		if i < 4:
+		if i < 3:
 			time.sleep(1)
-			con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command='echo',data='tmp test'))
+			con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command='echo'))
 finally:
 	try:
 		con.close()

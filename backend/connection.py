@@ -120,7 +120,6 @@ class PyCCConnection(object):
 			if len(newData)==0:
 				return None
 		elif self._status == 'init':
-			print(newData)
 			tmp=newData.decode('utf8').split("|")
 			if len(tmp)!=3:
 				raise ProtocolException(3,'unknown init')
@@ -158,43 +157,39 @@ class PyCCConnection(object):
 		self._nextComHandle+=2
 		return self._nextComHandle-2
 
+	def sendPackage(self,package):
+		if package.data is None:
+			boundary=''
+			data=b''
+		else:
+			boundary='EOF,'
+			if type(package.data) is str:
+				data=package.data.encode('utf8')
+			else:
+				data=package.data
+			data+=b'EOF\n'
+		message='{type}{comHandle}:{endBoundary}{command}\n'\
+			.format(type=package.type,comHandle=package.handle,
+			endBoundary=boundary,command=package.command).encode('utf8')
+		message+=data
+		self.send(message)
+
 	def sendRequest(self, package):
 		'''send new request to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
-		message='A{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='EOF,',
-			command=package.command).encode('utf8')
-		if type(package.data) is str:
-			message+=package.data.encode('utf8')
-		else:
-			message+=package.data
-		message+=b'EOF\n'
-		self.send(message)
+		package.type=PyCCPackage.TYPE_REQUEST
+		self.sendPackage(package)
 
 	def sendResponse(self, package):
 		'''send new response to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
-		message='O{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='EOF,',
-			command=package.command).encode('utf8')
-		if type(package.data) is str:
-			message+=package.data.encode('utf8')
-		else:
-			message+=package.data
-		message+=b'EOF\n'
-		self.send(message)
+		package.type=PyCCPackage.TYPE_RESPONSE
+		self.sendPackage(package)
 	def sendErrors(self, package):
 		'''send error to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
-		message='E{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='EOF,',
-			command=package.command).encode('utf8')
-		if type(package.data) is str:
-			message+=package.data.encode('utf8')
-		else:
-			message+=package.data
-		message+=b'EOF\n'
-		self.send(message)
+		package.type=PyCCPackage.TYPE_ERROR
+		self.sendPackage(package)
 
 
 	def send(self,data):
