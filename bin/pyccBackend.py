@@ -12,22 +12,46 @@ import hashlib
 
 config=backend.config.PyCCBackendConfig()
 backendID=config.getstr('network','id')
+
 if backendID is None:
 	backendID=hashlib.sha1("|".join(sys.path).encode('utf8'))
+
 server=backend.server.PyCCBackendServer(backendID)
 
-# loading backend plugins
-plugins=config.getstr('loadplugins','plugins').strip().split(',')
-for plugin in plugins:
-		d=importlib.import_module('backend.plugins.{pluginname}'.format(pluginname=plugin))
-		for elementName in dir(d):
-				element=getattr(d,elementName)
-				if element is type and issubclass(element, backend.plugins.general.Plugin):
-					server.addPlugin(element)
+# default value
+port = config.getint('network','port')
+network= config.getstr('network','bind')
+searchPort= True
+
+# loading arguments
+argIndex= 1
+while i < len(sys.argv):
+	arg= sys.argv[argIndex]
+	argIndex+= 1
+	if arg == '-searchPort':
+		# 1, 0
+		searchPort= int(sys.argv[argIndex])
+		argIndex+= 1
+	if arg == '-network':
+		# string
+		searchPort= sys.argv[argIndex]
+		argIndex+= 1
+	if arg == '-port':
+		# string
+		searchPort= int(sys.argv[argIndex])
+		argIndex+= 1
 
 # starting server
 try:
-		server.listen(config.getstr('network','bind'),config.getint('network','port'))
+		while searchPort:
+			try:
+				server.listen(network,port)
+				break
+			except:
+				port+=1
+		else:
+			server.listen(network,port)
+		
 		server.listenforever()
 finally:
 		server.shutdown()

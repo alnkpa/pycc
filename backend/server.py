@@ -22,12 +22,7 @@ class PyCCBackendServer(object):
 		self.serverPort = port
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		# searching first free port:
-		while True:
-			try:
-				self.server.bind((self.serverAddr, self.serverPort))
-				break
-			except:
-				self.serverPort+=1
+		self.server.bind((self.serverAddr, self.serverPort))
 		with open('.port','w') as portfile:
 			portfile.write(str(self.serverPort))
 		self.server.listen(1)
