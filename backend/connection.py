@@ -40,17 +40,18 @@ class PyCCPackage(object):
 class PyCCConnection(object):
 	version='0.1'
 
-	def __init__(self, socket, mode='client'):
+	def __init__(self, socket, nodeid, mode='client'):
 		""" create a new PyCC-Connection over the socket socket (server or client mode)
 		    socket: tcp-connection instance
 		    mode: client or server (e.g. helpful for protocol init)"""
 		self._socket = socket
+		self._nodeid = nodeid
 		self._mode = mode
 		self._status = 'new'
 		self._boundary = None
 		if self._mode == 'server':
 			self._nextComHandle = 0
-			self.sendstr('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
+			self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
 			self._status='init'
 		else:
 			self._nextComHandle = 1
@@ -113,9 +114,8 @@ class PyCCConnection(object):
 		if self._status == 'new':
 			if not newData.startswith(bytearray(b'PyCC')):
 				raise ProtocolException(6,'wrong protocol (header)')
-			self.sendstr('PyCC|{version}|PyCC-Node\n'.format(version=PyCCConnection.version))
+			self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
 			self._status='open'
-			print(newData)
 			newData=newData[newData.find(bytearray(b'\n'))+1:]
 			if len(newData)==0:
 				return None
