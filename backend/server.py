@@ -4,7 +4,6 @@
 import socket
 import select
 import backend.plugins
-import backend.plugins.general
 import backend.connection
 
 class PyCCBackendServer(object):
@@ -15,6 +14,7 @@ class PyCCBackendServer(object):
 		self.serverPort = None
 		self.clients = []
 		self.read = True
+		self.plugins = backend.plugins.PyCCBackendPluginManager(self)
 
 	def listen(self, addr, port):
 		self.serverAddr = addr
@@ -30,8 +30,10 @@ class PyCCBackendServer(object):
 		with open('.port','w') as portfile:
 			portfile.write(str(self.serverPort))
 		self.server.listen(1)
+		self.plugins.startup()
 
 	def shutdown(self):
+		self.plugins.shutdown()
 		for client in self.clients:
 			client.close()
 		self.server.close()
@@ -61,12 +63,14 @@ class PyCCBackendServer(object):
 	def clientConnectionOpened(self,clientSocket):
 		pyccConnection=backend.connection.PyCCConnection(clientSocket,mode='server')
 		self.clients.append(pyccConnection)
+		self.plugins.clientConnectionOpened(clientSocket)
 		ip = pyccConnection.getpeername()[0]
 		print("+++ connection from %s" % ip)
 
 	def clientConnectionClosed(self,clientSocket):
 		ip = clientSocket.getpeername()[0]
 		print("+++ connection to %s closed" % ip)
+		self.plugins.clientConnectionClosed(clientSocket)
 		clientSocket.close()
 		self.clients.remove(clientSocket)
 
@@ -75,3 +79,4 @@ class PyCCBackendServer(object):
 		print("[%s] %s" % (ip, message))
 		if message.strip() == 'shutdown':
 			self.read = False
+		self.plugins.handleCommand(clientSocket,comHandle,'',message) # FixMe

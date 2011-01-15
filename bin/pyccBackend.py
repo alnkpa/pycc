@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import sys
 sys.path.append('.')
+sys.path.append('./backend')
+sys.path.append('./backend/plugins')
 import backend
 import backend.config
 import backend.server
 import importlib
-import backend.plugins.general
+import backend.plugins.Plugin
 
 config=backend.config.PyCCBackendConfig()
 server=backend.server.PyCCBackendServer()

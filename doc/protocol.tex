@@ -22,19 +22,33 @@
 		\item \textbf{open:} \quad	Connection is established.
 	\end{itemize}
 	
-	Example \textbf{new} Socket Packet:	\begin{center}{$PYCC \mid [version] \mid Client$}\end{center}
+	Example \textbf{new} Socket Packet:	\begin{center}{$PYCC \mid [versions] \mid PyCC-Node$}\end{center}
 	\begin{itemize}
 		\item	Protocol begins with \quad $PYCC$
 		\item	Single Protocol parts are seperated by pipes \quad $\mid$
-		\item	$[version]$ contains the protocol-version used for this connection.
-		\item $Client$ describes the PYCC-Node the package is adressed to.
+		\item	$[versions]$ contains the protocol-versions (comma seperated)  used for this connection.
+		\item $PyCC-Node$ describes additional information about the sender (not imprtant).
 	\end{itemize}
 
-When the socket receives a package formatted that way it sends a packacke of the same format $(PYCC|[version]|Client)$
+	When the socket receives a package formatted that way it sends a packacke of the same format. $(PYCC|[version]|PyCC-Node)$
+	Finally an $OK,[version]$ Message is sent back to confirm the Connection. 
+
+	\newpage
 
 	\subsection{Message Specification}
-	Example:	\begin{center}{$$}\end{center}
+	Example:	\begin{center}{$A[comHandle]:[Message]$}\end{center}
+	Where:
+	\begin{itemize}
+	
+		\item \textbf{First Letter}: \quad indicates the type of message
+			\subitem \textbf{A}: \quad is a Request Message
+			\subitem \textbf{O}: \quad is the Answer to that Request
+			\subitem \textbf{E}: \quad is the Errormessage raised
+		\item \textbf{[comHandle]} \quad is a number indicating the connection count Client has odd counts, Server evens.
+		\item :\textbf{Message} A Message preceeded by : .
 
+	\end{itemize}
 	\section{Exceptions}
 	If a protocoll format \emph{does not} provide the features that are demanded in the specification a ProtocolException is raised.
+	May be useful sometime.
 \end{document}
