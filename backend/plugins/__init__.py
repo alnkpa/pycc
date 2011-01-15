@@ -11,10 +11,8 @@ def getPluginClasses():
     '''load and return a list of all Plugin derivates in the local modules'''
     # the module name   "package.package. ... .name"
     package= '.'.join(__name__.split('.')[:-1])
-    print(__file__)
     # directory of this file
     dirPath= os.path.dirname(__file__) 
-    print (dirPath)
     if package:
         # might be nonlocal import
         # 'package.package.'
