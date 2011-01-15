@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# fixing working directory
+import os
+import os.path
+os.chdir(os.path.realpath(os.path.join(os.path.split(__file__)[0],'..')))
+# fixing include path
 import sys
 sys.path.append('.')
 sys.path.append('./backend')
