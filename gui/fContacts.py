@@ -26,3 +26,4 @@ contacts.insert(tkinter.END, "Joseph")
 contacts.insert(tkinter.END, "Anita")
 contacts.insert(tkinter.END, "Stefan")
 root.mainloop()
+
