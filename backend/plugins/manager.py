@@ -112,13 +112,12 @@ class PyCCBackendPluginManager(object):
 		    client: client connection (PyCCConnection)'''
 		pass
 
-	def handleCommand(self, conElement):
+	def handleCommand(self, conPackage):
 		''' method is called for handle a command request
-		    clientSocket: client connection (PyCCConnection)
-		    conElement: connection element (PyCCConnectionElement)'''
+		    conPackage: connection element (PyCCPackage)'''
 		for plugin in self.plugins:
-			if conElement.command.startwith(plugin[0]):
-				v= plugin[1].recvCommand(conElement)
+			if conPackage.command.startswith(plugin[0]):
+				v= plugin[1].recvCommand(conPackage)
 				if v != CONTINUE:
 					break
 
