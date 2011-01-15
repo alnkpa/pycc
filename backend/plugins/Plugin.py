@@ -16,11 +16,11 @@ class Plugin(object):
 		self.PyCCManager.send(command, data)
 
 	#Any command send from the PyCCManager will be here
-	def recvCommand(self, data):
+	def recvCommand(self, *args):
 		pass
 
 	#tell the register that you want be registered with it
 	def registerInManager(self):
-		self.PyCCManager.registerPlugin(name, self, self.priority)
+		self.PyCCManager.registerPlugin(self.registeredName, self, self.priority)
 	def shutdown(self):
 		pass

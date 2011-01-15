@@ -50,13 +50,15 @@ class PyCCBackendServer(object):
 						self.clientConnectionOpened(client)
 					else:
 						parsed=sock.parseInput()
-						if not parsed :
+						if parsed is False :
 							self.clientConnectionClosed(sock)
-						elif parsed!=True:
-							(messageType,comHandle,messageData)=parsed
-							if messageType == 'A': #Request
-								self.handleCommand(sock,comHandle,messageData)
+						elif type(parsed) is backend.connection.PyCCConnectionElement:
+							if parsed.type == backend.connection.PyCCConnectionElement.TYPE_REQUEST: #Request
+								self.handleCommand(sock,parsed)
 				except backend.connection.ProtocolException as e:
+					print("{0}: {1}".format(type(e),e))
+					self.clientConnectionClosed(sock)
+				except socket.error as e:
 					print("{0}: {1}".format(type(e),e))
 					self.clientConnectionClosed(sock)
 
@@ -74,9 +76,12 @@ class PyCCBackendServer(object):
 		clientSocket.close()
 		self.clients.remove(clientSocket)
 
-	def handleCommand(self,clientSocket,comHandle,message):
+	def handleCommand(self,clientSocket,conElement):
 		ip = clientSocket.getpeername()[0]
-		print("[%s] %s" % (ip, message))
-		if message.strip() == 'shutdown':
+		print("[%s] %s" % (ip, conElement))
+		if conElement.command.strip() == 'shutdown':
 			self.read = False
-		self.plugins.handleCommand(clientSocket,comHandle,'',message) # FixMe
+		self.plugins.handleCommand(clientSocket,conElement) # FixMe
+		
+	def registerPlugin(self,plugin):
+		self.plugins.registerPlugin(plugin)

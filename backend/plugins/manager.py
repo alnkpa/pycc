@@ -9,6 +9,8 @@ import os
 PLUGIN_BASE_MODULE_NAME = 'Plugin'
 PLUGIN_BASE_CLASS_NAME = 'Plugin'
 
+CONTINUE= 'continue'
+
 def getPluginClasses():
     '''load and return a list of all Plugin derivates in the local modules'''
     # the module name   "package.package. ... .name"    so only show the packages
@@ -84,7 +86,7 @@ class PyCCBackendPluginManager(object):
 		PClasses=getPluginClasses()
 		for pluginClass in PClasses:
 			p=pluginClass(self)
-			p.registerInBackend()
+			p.registerInManager()
 
 	def registerPlugin(self, name, plugin, priority):
 		self.plugins.append((name, plugin, priority))
@@ -109,19 +111,17 @@ class PyCCBackendPluginManager(object):
 		    client: client connection (PyCCConnection)'''
 		pass
 
-	def handleCommand(self, client, comHandle, command, data):
+	def handleCommand(self, client, conElement):
 		''' method is called for handle a command request
 		    clientSocket: client connection (PyCCConnection)
-		    comHandle: identifier of the corresponding request
-		    command: command name
-		    data: message of command'''
-		regPlugin, cmd = command.split(":")
+		    conElement: connection element (PyCCConnectionElement)'''
 		for plugin in self.plugins:
-			if plugin[0]==regPlugin:
-				break
-	plugin[1].recvCommand(client, comHandle, cmd, data)
-	
-__all__ = ['getPluginClasses', 'PyCCBackendPluginManager']
+			if conElement.command.startwith(plugin[0]):
+				v= plugin[1].recvCommand(client, conElement.handle, conElement.command, conElement.data)
+				if v != CONTINUE:
+					break
+
+__all__ = ['getPluginClasses', 'PyCCBackendPluginManager', 'CONTINUE']
 
 if __name__ == '__main__':
     # test module
