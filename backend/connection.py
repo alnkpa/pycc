@@ -32,6 +32,10 @@ class PyCCPackage(object):
 		return 'PyCCP:{0}{1}:{2}|{3}'.format(self.type,
 			self.handle,self.command,self.data)
 
+	def dump(self):
+		print( 'PyCCP:\nType:{0}\\\nHandle:{1}\\\nCommand:{2}\\\nData:\n{3}\\'.format(self.type,
+			self.handle,self.command,self.data))
+
 
 class PyCCConnection(object):
 	version='0.1'
@@ -150,38 +154,38 @@ class PyCCConnection(object):
 		'''send new request to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		message='A{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='EOF',
+			.format(comHandle=package.handle,endBoundary='EOF,',
 			command=package.command).encode('utf8')
-		if package.data is str:
+		if type(package.data) is str:
 			message+=package.data.encode('utf8')
 		else:
 			message+=package.data
-		message+=b'EOF'
+		message+=b'EOF\n'
 		self.send(message)
 
 	def sendResponse(self, package):
 		'''send new response to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		message='O{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='EOF',
+			.format(comHandle=package.handle,endBoundary='EOF,',
 			command=package.command).encode('utf8')
-		if package.data is str:
+		if type(package.data) is str:
 			message+=package.data.encode('utf8')
 		else:
 			message+=package.data
-		message+=b'EOF'
+		message+=b'EOF\n'
 		self.send(message)
 	def sendErrors(self, package):
 		'''send error to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		message='E{comHandle}:{endBoundary}{command}\n'\
-			.format(comHandle=package.handle,endBoundary='EOF',
+			.format(comHandle=package.handle,endBoundary='EOF,',
 			command=package.command).encode('utf8')
-		if package.data is str:
+		if type(package.data) is str:
 			message+=package.data.encode('utf8')
 		else:
 			message+=package.data
-		message+=b'EOF'
+		message+=b'EOF\n'
 		self.send(message)
 
 

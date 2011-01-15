@@ -12,7 +12,7 @@ class ContactPlugin(Plugin.Plugin):
 		for line in f.readlines():
 			append((line.strip().split(":")[0],line.strip().split(":")[1]))		
 
-	def recvcommand(self,package):
+	def recvCommand(self,package):
 		''' Processes the given Command'''
 		if package.command=="addAccount":
 			self.addAccount(data)
@@ -57,15 +57,15 @@ class ContactPlugin(Plugin.Plugin):
 			if contact[1]==accountName:
 				return contact[0]
 
-	def getAccounts(package):
+	def getAccounts(self,package):
 		'''Get all of the accounts, comma seperated accountHash:accountName pairs are returned'''		
 		string=""		
 		for contact in self.contacts:
-			string=string+contact[0]+":"+contact[1]
-		package.data=string
-		sendcommand(package)
+			string=string+contact[0]+":"+contact[1]+","
+		package.data=string[:-1]
+		package.connection.sendResponse(package)
 
 	def shutdown(self):
 		f=open(".contacts","w")
 		for contact in self.contacts:		
-			f.write(contact[0]+":"+contact[1])
+			f.write(contact[0]+":"+contact[1]+"\n")
