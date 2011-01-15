@@ -41,7 +41,7 @@ while argIndex < len(sys.argv):
 		argIndex+= 1
 	if arg == '-port':
 		# string
-		searchPort= int(sys.argv[argIndex])
+		port= int(sys.argv[argIndex])
 		argIndex+= 1
 
 # starting server
