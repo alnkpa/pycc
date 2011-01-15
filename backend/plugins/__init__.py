@@ -5,10 +5,6 @@
 import os
 import Plugin
 
-def loadAll(callback, pluginarguments):
-    '''load all plugins in the plugin directory'''
-
-
 def getPluginClasses():
     '''load and return a list of all Plugin derivates in the local modules'''
     # the module name   "package.package. ... .name"
@@ -59,6 +55,8 @@ def getPluginClasses():
                 pluginClasses.append(cls)
     return pluginClasses
 
+
+__all__ = ['getPluginClasses']
 
 if __name__ == '__main__':
     # test module
