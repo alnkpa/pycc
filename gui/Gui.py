@@ -67,6 +67,15 @@ fTextScrollbar.pack(side = tk.RIGHT, fill = tk.Y)
 
 fText.grid(row = 2, column = 0)
 
+#Methoden:
+def empfange(msg, addr):
+	pass
+
+def sende(msg, addr):
+	print(msg)
+
+
+
 root.mainloop()
 
 ## send button
