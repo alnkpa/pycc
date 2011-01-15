@@ -5,6 +5,7 @@ import socket
 import select
 import backend.plugins
 import backend.plugins.general
+import backend.connection
 
 class PyCCBackendServer(object):
 
@@ -37,23 +38,30 @@ class PyCCBackendServer(object):
 
 	def listenforever(self):
 		while self.read:
-			toReadConnections, toWritConnections, priorityConnectsions = select.select(
+			toReadConnections, toWriteConnections, priorityConnectsions = select.select(
 				[self.server] + self.clients, [], [])
 
 			for sock in toReadConnections:
-				if sock is self.server: # new connection
-					client, addr = self.server.accept()
-					self.clientConnectionOpened(client)
-				else:
-					message = sock.recv(1024).decode('utf8')
-					if message:
-						self.handleCommand(sock,message)
+				try:
+					if sock is self.server: # new connection
+						client, addr = self.server.accept()
+						self.clientConnectionOpened(client)
 					else:
-						self.clientConnectionClosed(sock)
+						parsed=sock.parseInput()
+						if not parsed :
+							self.clientConnectionClosed(sock)
+						elif parsed!=True:
+							(messageType,comHandle,messageData)=parsed
+							if messageType == 'A': #Request
+								self.handleCommand(sock,comHandle,messageData)
+				except backend.connection.ProtocolException as e:
+					print("{0}: {1}".format(type(e),e))
+					self.clientConnectionClosed(sock)
 
 	def clientConnectionOpened(self,clientSocket):
-		self.clients.append(clientSocket)
-		ip = clientSocket.getpeername()[0]
+		pyccConnection=backend.connection.PyCCConnection(clientSocket,mode='server')
+		self.clients.append(pyccConnection)
+		ip = pyccConnection.getpeername()[0]
 		print("+++ connection from %s" % ip)
 
 	def clientConnectionClosed(self,clientSocket):
@@ -62,7 +70,7 @@ class PyCCBackendServer(object):
 		clientSocket.close()
 		self.clients.remove(clientSocket)
 
-	def handleCommand(self,clientSocket,message):
+	def handleCommand(self,clientSocket,comHandle,message):
 		ip = clientSocket.getpeername()[0]
 		print("[%s] %s" % (ip, message))
 		if message.strip() == 'shutdown':
