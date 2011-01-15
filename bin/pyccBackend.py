@@ -8,9 +8,13 @@ import backend.config
 import backend.server
 import importlib
 import backend.plugins.Plugin
+import hashlib
 
 config=backend.config.PyCCBackendConfig()
-server=backend.server.PyCCBackendServer()
+backendID=config.getstr('network','id')
+if backendID is None:
+	backendID=hashlib.sha1("|".join(sys.path).encode('utf8'))
+server=backend.server.PyCCBackendServer(backendID)
 
 # loading backend plugins
 plugins=config.getstr('loadplugins','plugins').strip().split(',')

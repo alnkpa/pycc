@@ -1,3 +1,4 @@
+
 import socket
 
 class ProtocolException(Exception):
@@ -7,7 +8,16 @@ class ProtocolException(Exception):
 	def __str__(self):
 		return "ProtocolException: {0} - {1}".format(self.type,self.message)
 
-class PyCCConnectionElement(object):
+class PyCCPackage(object):
+	""" record class
+	    this class is used to transfer and save information about request, 
+	    response and error messages of the PyCC protocol
+
+	    connection: connection to client [PyCCConnection]
+	    type: message type (request, response, error)
+	    handle: message identifier - nesessary to assign responses to requests
+	    command: command (handle by plugins)
+	    data: data of message"""
 	TYPE_REQUEST='A'
 	TYPE_REPONSE='O'
 	TYPE_ERROR='E'
@@ -20,7 +30,7 @@ class PyCCConnectionElement(object):
 		self.data=data
 
 	def __str__(self):
-		return 'PyCCCE:{0}{1}:{2}\n{3}'.format(self.type,
+		return 'PyCCCE:{0}{1}:{2}|{3}\n'.format(self.type,
 			self.handle,self.command,self.data)
 
 
@@ -28,6 +38,9 @@ class PyCCConnection(object):
 	version='0.1'
 
 	def __init__(self, socket, mode='client'):
+		""" create a new PyCC-Connection over the socket socket (server or client mode)
+		    socket: tcp-connection instance
+		    mode: client or server (e.g. helpful for protocol init)"""
 		self._socket = socket
 		self._mode = mode
 		self._status = 'new'
@@ -41,15 +54,15 @@ class PyCCConnection(object):
 		self._buffer=bytearray()
 
 	def _parseMessageStart(self):
-		self._element = PyCCConnectionElement(connection=self)
+		self._element = PyCCPackage(connection=self)
 		self._boundary = None
 		# Extract MessageType:
 		if self._buffer[0]==bytearray(b'A')[0]:
-			self._element.type=PyCCConnectionElement.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_REQUEST
 		elif self._buffer[0]==bytearray(b'O')[0]:
-			self._element.type=PyCCConnectionElement.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_REQUEST
 		elif self._buffer[0]==bytearray(b'E')[0]:
-			self._element.type=PyCCConnectionElement.TYPE_REQUEST
+			self._element.type=PyCCPackage.TYPE_REQUEST
 		else:
 			raise ProtocolException(1,'unknown message type')
 		# Extract ComHandle:
@@ -81,6 +94,14 @@ class PyCCConnection(object):
 
 
 	def parseInput(self):
+		""" parse new unread data in the socket
+		    return recieved connection packages
+		    Return:
+		      False: connection closed
+		      None: new new packages
+		      PyCCPackage: new package
+		    """
+
 		newData=self._socket.recv(8192)
 		if not newData:
 			return False
@@ -119,15 +140,13 @@ class PyCCConnection(object):
 		return self._element
 
 	def newRequest(self):
+		""" build handle for a new reqeust"""
 		self._nextComHandle+=2
 		return self._nextComHandle-2
 
-	def sendRequest(self, comHandle, command, data=None):
+	def sendRequest(self, package):
 		'''send new request to connection partner
-		comHandle: identifier of request (for responces)
-		command: command name
-		data: binary or utf8 data for transfer
-		endBoundary: binary-code for request end mark;  True for auto setting'''
+		package: data to send (not all data uses e.g. type)'''
 		message='A{comHandle}:{endBoundary},{command}\n'\
 			.format(comHandle).format(data).encode('utf8')
 		if data is str:
@@ -138,10 +157,7 @@ class PyCCConnection(object):
 
 	def sendResponse(self, comHandle, command, data=None):
 		'''send new response to connection partner
-		comHandle: identifier of the corresponding request
-		command: command name
-		data: binary or utf8 data for transfer
-		endBoundary: binary-code for request end mark;  True for auto setting'''
+		package: data to send (not all data uses e.g. type)'''
 		message='O{comHandle}:{endBoundary},{command}\n'\
 			.format(comHandle).format(data).encode('utf8')
 		if data is str:
@@ -149,10 +165,16 @@ class PyCCConnection(object):
 		else:
 			message+=data
 		self.send(message)
-
-	def sendError(self, comHandle, message):
-		self.send('E{comHandle}:{data}'.format(comHandle).format(data))
-
+	def sendErrors(self, comHandle, command, data=None):
+		'''send error to connection partner
+		package: data to send (not all data uses e.g. type)'''
+		message='E{comHandle}:{endBoundary},{command}\n'\
+			.format(comHandle).format(data).encode('utf8')
+		if data is str:
+			message+=data.encode('utf8')
+		else:
+			message+=data
+		self.send(message)
 
 
 	def send(self,data):
