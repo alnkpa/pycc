@@ -4,6 +4,7 @@ except ImportError:
 	import __init__ as plugins
 	
 class Backend(object):
+	'''Implements a backend'''
 	
 	def __init__(self):
 		self.plugins = []
