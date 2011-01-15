@@ -1,0 +1,40 @@
+\documentclass{scrartcl}
+
+\usepackage{charter}
+\usepackage{amsmath}
+
+\title{Pycc Protokoll Specification 0.1}
+\author{Christoph Sterz}
+
+\maketitle
+
+\begin{document}
+	\section{Preface}
+	The pycc protocol is used to send messages and commands between the various pycc clients. It provides a simple way to format given 
+	byte-strings to package- and client-information and the actual message.
+
+	\section{Specification}
+	\subsection{New connection and protocol handshake}
+	A connection has 3 statuses:
+	\begin{itemize}
+		\item \textbf{new:} \quad Connection is new and not even received by the connection partner.
+		\item \textbf{init:} \quad	Connection is established but needs to be configured.
+		\item \textbf{open:} \quad	Connection is established.
+	\end{itemize}
+	
+	Example \textbf{new} Socket Packet:	\begin{center}{$PYCC \mid [version] \mid Client$}\end{center}
+	\begin{itemize}
+		\item	Protocol begins with \quad $PYCC$
+		\item	Single Protocol parts are seperated by pipes \quad $\mid$
+		\item	$[version]$ contains the protocol-version used for this connection.
+		\item $Client$ describes the PYCC-Node the package is adressed to.
+	\end{itemize}
+
+When the socket receives a package formatted that way it sends a packacke of the same format $(PYCC|[version]|Client)$
+
+	\subsection{Message Specification}
+	Example:	\begin{center}{$$}\end{center}
+
+	\section{Exceptions}
+	If a protocoll format \emph{does not} provide the features that are demanded in the specification a ProtocolException is raised.
+\end{document}
