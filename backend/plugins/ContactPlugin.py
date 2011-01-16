@@ -14,10 +14,8 @@ class ContactPlugin(Plugin.Plugin):
 
 	def recvCommand(self,package):
 		''' Processes the given Command'''
-		try:
-			command, arg = package.command.split(" ")
-		except ValueError:
-			command = package.command
+		command = package.command
+		arg = package.data
 		if command == "addAccount":
 			self.addAccount(arg)
 		elif command == "deleteAccount":
@@ -62,6 +60,7 @@ class ContactPlugin(Plugin.Plugin):
 		for contact in contacts:
 			if contact[1]==accountName:
 				return contact[0]
+		raise KeyError
 
 	def getAccounts(self,package):
 		'''Get all of the accounts, comma seperated accountHash:accountName pairs are returned'''		

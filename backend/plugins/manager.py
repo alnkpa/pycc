@@ -80,7 +80,7 @@ class PyCCBackendPluginManager(object):
 
 	def __init__(self,server):
 		self.server=server
-		self.plugins = []
+		self.plugins = [] # (command, plugin, priority)
 
 	def loadPlugins(self):
 		self.plugins = []
@@ -98,6 +98,12 @@ class PyCCBackendPluginManager(object):
 		self.loadPlugins()
 		for plu in self.plugins:
 			plu[1].startup()
+			
+	def searchPlugin(self, name):
+		for plu in self.plugins:
+			if plu[1].__name__ == name:
+				return plu[1]
+		raise KeyError
 
 	def shutdown(self):
 		''' method is called directly before the server will stuting down'''
