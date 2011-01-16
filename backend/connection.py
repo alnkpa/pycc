@@ -137,7 +137,7 @@ class PyCCConnection(object):
 		if result == False: # not all data received
 			return
 		elif result is True: # no boundary set -> one line
-			self._element.data = self._buffer[result:]
+			self._element.data = None
 			self._buffer = self._buffer=bytearray()
 			self._boundary = None
 			return self._element
