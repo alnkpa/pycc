@@ -45,7 +45,10 @@ defaultSocketArguments
 	def __init__(self):
 		'''initialize the frontend class'''
 		self.socket= None
-		self.callbacks= {} # connectionhandle (int) : function
+		# connectionhandle (int) : function
+		# command : function
+		self.callbacks= {} 
+
 		self.pipe= None
 
 	def getNodeId(self):
@@ -101,6 +104,24 @@ tuple of two bytes or connection.PyCCPackage')
 				raise ValueError('callback must be a function or None')
 		return package.handle
 
+	def addCallback(self, command, callback):
+		'''register a callback for a given command
+
+The callback function will be called with a packet as first and only argument.
+'''
+		if type(command) is not str:
+			raise ValueError('command must be of type str not of type {0}'.format(type(command)))
+		if not hasattr(callback, '__call__'):
+			raise ValueError('callback must be callable like a function')
+		self.callback[command]= callback
+
+	def _handleCommand(self, packet):
+		'''find and call the callback function for the given packet.'''
+		for comm in self.callback:
+			if type(comm) is str and packet.command.startswith(comm):
+				return self.callback[comm](packet)
+		
+
 	def update(self, responses= -1):
 		'''look for responses and execute the callback functions
 
@@ -119,6 +140,9 @@ return wether the connection is alive
 				continue
 			if package is False:
 				return False
+			if packet.type == packet.TYPE_REQUEST:
+				self._handleCommand(packet)
+				continue
 			callback= self.callbacks.get(package.handle, None)
 			if callback is None:
 				continue
