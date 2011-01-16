@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import Frontend
+import Preferences
 
 class MainWindow(tk.Tk):
 
@@ -11,7 +12,9 @@ class MainWindow(tk.Tk):
 		self.title("PYCC")
 		self.openChats = []
 		self.curChat = ''
-
+		
+		self.prefs = Preferences.Preferences('preferences.cfg')
+		
 		# chat selection
 		self.fChatSelection = tk.Frame(self)
 		self.fChatSelection.grid(row = 0, column = 0, sticky = 'w')
@@ -59,6 +62,7 @@ class MainWindow(tk.Tk):
 		self.luserPreferences = tk.Label(self.fPreferences, text = 'Username:')
 		self.luserPreferences.pack()
 		self.userNamePreferences = tk.Text(self.fPreferences, height = 1, width = 20)
+		self.userNamePreferences.insert(tk.END, self.prefs.username)
 		self.userNamePreferences.pack()
 		self.sPreferences = tk.Scrollbar(self.fPreferences)
 		self.sPreferences.pack()
