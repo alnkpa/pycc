@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import os
+import os.path
+os.chdir(os.path.realpath(os.path.join(os.path.split(__file__)[0],'..')))
 import sys
 sys.path.append('.')
 sys.path.append('./backend')
