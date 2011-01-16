@@ -91,7 +91,11 @@ class MainWindow(tk.Tk):
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
+			self.frontend.sendRequest(('echo', message.decode('UTF-8'), self.messageSent)
 			self.tText.delete('1.0','end')
+	
+	def messageSent(self, package):
+	    if package.type == package.
 
 	def loadContacts(self, contacts):
 		''' fill contact list or add contact
