@@ -24,14 +24,17 @@ con is of type backend.connection.PyCCPackage
 			package.connection.sendResponse(package)
 		elif package.command.startswith('connectto'):
 			args=package.command.split(' ')
+			if len(args)==2:
+				args.append(62533)
 			if len(args)!=3:
 				return None
 			else:
-				self.PyCCManager.server.openConnnectionTo(args[1],args[2])
+				print(args)
+				self.PyCCManager.server.openConnection(args[1],int(args[2]))
 		elif package.command.startswith('relay'):
 			args=package.command.split(' ')
 			if len(args)!=2:
 				return None
 			else:
-				con=self.PyCCManager.server.getConnection(args[1])
-				con.send(package.data)
+				for con in self.PyCCManager.server.getConnectionList(args[1]):
+					con.send(package.data)

@@ -18,6 +18,7 @@ class PyCCBackendServer(object):
 		self.plugins = backend.plugins.PyCCBackendPluginManager(self)
 
 	def listen(self, addr, port):
+		print(addr, port)
 		self.serverAddr = addr
 		self.serverPort = port
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,3 +87,19 @@ class PyCCBackendServer(object):
 				info=connection.getpeername()
 				message+='{0}:{1} -- nodeID:{2}\n'.format(info[0],info[1],connection.partnerNodeID)
 		return message
+
+	def openConnection(self,host,port=62533):
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.connect((host, port))
+		con=backend.connection.PyCCConnection(sock,self.nodeID)
+		self.clients.append(con)
+
+	def getConnectionList(self,node):
+		count=0
+		for con in self.clients:
+				if con.partnerNodeID==node:
+						count+=1
+						yield con
+		if count==0:
+			# fix: open connection
+			pass
