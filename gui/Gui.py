@@ -1,6 +1,7 @@
 ''' GUI for PYCC with resizing elements '''
 
 import tkinter as tk
+import Frontend
 
 class MainWindow(tk.Tk):
 
@@ -40,7 +41,7 @@ class MainWindow(tk.Tk):
 		self.fText.grid(row = 2, column = 0, sticky = 'nswe')
 		self.sText = tk.Scrollbar(self.fText)
 		self.sText.pack(side = 'right', fill = 'y')	
-		self.tText = tk.Text(self.fText, yscrollcommand = self.sText.set, height = 4)
+		self.tText = tk.Text(self.fText, yscrollcommand = self.sText.set, height = 4, state = 'disabled')
 		self.tText.pack(side = 'left', fill = 'x', expand = True)
 		self.sText.config(command = self.tText.yview)
 
@@ -58,9 +59,14 @@ class MainWindow(tk.Tk):
 		self.lPreferences = tk.Label(self.fPreferences, text = 'Preferences')
 		self.lPreferences.pack()
 		
-		# send button
-		self.bSend = tk.Button(self, text = 'Send', command = self.sendMessage, width = 10)
-		self.bSend.grid(row = 3, column = 0, sticky = 'w')
+		# chat buttons
+		self.fChatButtons = tk.Frame(self)
+		self.fChatButtons.grid(row = 3, column = 0, sticky = 'w')
+			
+		self.bSend = tk.Button(self.fChatButtons, text = 'Send', command = self.sendMessage, width = 10, state = 'disabled')
+		self.bSend.pack(side = 'left')		
+		self.bCloseChat = tk.Button(self.fChatButtons, text = 'Close Chat', command = self.closeChat, width = 10, state = 'disabled')
+		self.bCloseChat.pack(side = 'left')
 
 		# define expanding rows and columns
 		self.rowconfigure(1 , weight = 1)
@@ -68,7 +74,15 @@ class MainWindow(tk.Tk):
 
 		# define events
 		self.lContacts.bind('<Double-ButtonPress-1>', self.startChat)
-		self.tText.bind('<KeyPress-Return>', self.sendMessage)
+		self.tText.bind('<KeyRelease-Return>', self.sendMessage)
+		self.tText.bind('<Shift-KeyRelease-Return>', self.newline)
+		
+		self.frontend = Frontend.Frontend()
+		started = self.frontend.startBackend()
+		if not started:
+			print('Fehler!!!!')
+		else:
+			self.frontend.updateLoopTkinter(self)
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
@@ -91,7 +105,14 @@ class MainWindow(tk.Tk):
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
+			self.frontend.sendRequest(('getAccounts', message.encode('UTF-8'), self.messageSent))
 			self.tText.delete('1.0','end')
+	
+	def messageSent(self, package):
+		if package.type == package.TYPE_RESPONSE:
+			pass
+		elif package.type == package.TYPE_ERROR:
+			print('error', package.data)
 
 	def loadContacts(self, contacts):
 		''' fill contact list or add contact
@@ -116,6 +137,10 @@ class MainWindow(tk.Tk):
 			self.switchChat(name)
 		else:
 			self.title('PYCC - ' + name)
+			if self.openChats == []:
+				self.tText.config(state = 'normal')
+				self.bSend.config(state = 'normal')
+				self.bCloseChat.config(state = 'normal')
 			# cache current chat, clear windows
 			if self.curChat != '':
 				self.cacheChat(self.curChat)
@@ -148,11 +173,24 @@ class MainWindow(tk.Tk):
 		self.activeButton.config(relief = tk.RAISED)
 		exec('self.activeButton = self.b' + name)
 		exec('self.b' + name + '.config(relief = tk.SUNKEN)')
-		
+
+	def closeChat(self):
+		pass
+		"""button = 'self.b' + self.curChat
+		cache = 'self.c' + self.curChat
+		exec(button + '.forget()')
+		exec('del(' + button + ')')
+		exec('del(' + cache + ')')
+		i = self.openChats.index(self.curChat)
+		self.openChats.pop(i)
+		self.curChat = self.openChats[i-1]
+		self.switchChat(self.curChat)
+		"""
+
 	def cacheChat(self,name):
 		''' save content of tChatWindow and tText in cache list of name '''
 		cache = 'self.c' + name		
-		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip()')
+		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip() + \'\\n\\n\'')
 		exec(cache + '[1] = self.tText.get(\'1.0\',\'end\').strip()')
 
 	def readCache(self,name):
@@ -170,6 +208,10 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.delete('1.0','end')
 		self.tText.delete('1.0','end')
 		self.tChatWindow.config(state = 'disable')
+		
+	def newline(self, event):
+		line = self.tText.index('insert').split('.')[0]
+		self.tText.mark_set('insert',line + '.0')
 		
 
 # open window if not imported
