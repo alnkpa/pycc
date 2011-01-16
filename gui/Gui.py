@@ -13,6 +13,7 @@ class MainWindow(tk.Tk):
 		self.openChats = []
 		self.curChat = ''
 		
+		# make an instance of preferences
 		self.prefs = Preferences.Preferences('preferences.cfg')
 		
 		# chat selection
@@ -112,14 +113,19 @@ class MainWindow(tk.Tk):
 		else:
 			self.frontend.updateLoopTkinter(self)
 		
+		# add callback to be raised when new message is received
 		self.frontend.addCallback('newMessage', self.gotNewMessage)	
+		
+		#load contact list from pycc/.contacts
 		self.frontend.sendRequest('getAccounts', self.gotAccounts)
 
 	def windowClosing(self):
+		'''called, when user wants to end program'''
 		self.frontend.closeBackend()
-		self.quit()
+		self.destroy()
 
 	def gotAccounts(self, package):
+		'''raised, when account-list was returned from frontend'''
 		data = package.data.decode('utf-8')
 		data = data.split(',')
 		accounts = []

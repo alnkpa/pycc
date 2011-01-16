@@ -9,41 +9,56 @@ import backend.connection
 class PyCCBackendServer(object):
 
 	def __init__(self,id):
-		self.nodeID=id
-		self.server = None
-		self.serverAddr = None
-		self.serverPort = None
-		self.clients = []
-		self.read = True
-		self.plugins = backend.plugins.PyCCBackendPluginManager(self)
+		self._nodeId=id
+		self._server = None
+		self._serverAddr = None
+		self._serverPort = None
+		self._connections = {
+			'tcpListen':[],
+			'udpListen':[],
+			'clients':[],
+			'broadcasts':[]
+			}
+		self._read = True
+		self._plugins = backend.plugins.PyCCBackendPluginManager(self)
 
 	def listen(self, addr, port):
-		print(addr, port)
-		self.serverAddr = addr
-		self.serverPort = port
-		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		# searching first free port:
-		self.server.bind((self.serverAddr, self.serverPort))
+		self._serverAddr = addr
+		self._serverPort = port
+		# setting up tcp socket
+		tcpSocket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		tcpSocket.bind((self._serverAddr, self._serverPort))
+		tcpSocket.listen(1)
+		# setting up upd socket
+		self._connections['tcpListen'].append(tcpSocket)
+		udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		udpSocket.bind((self._serverAddr, self._serverPort))
+		pyccConnection=backend.connection.PyCCConnection(udpSocket,self._nodeId,status='udp',mode='server')
+		self._connections['udpListen'].append(pyccConnection)
+		# save used port
 		with open('.port','w') as portfile:
-			portfile.write(str(self.serverPort))
-		self.server.listen(1)
-		self.plugins.startup()
+			portfile.write(str(self._serverPort))
+		print(self._serverAddr, self._serverPort)
+		self._plugins.startup()
 
 	def shutdown(self):
-		self.plugins.shutdown()
-		for client in self.clients:
-			client.close()
-		self.server.close()
+		self._plugins.shutdown()
+		for socktype in self._connections:
+			for client in self._connections[socktype]:
+				client.close()
 
 	def listenforever(self):
-		while self.read:
+		while self._read:
 			toReadConnections, toWriteConnections, priorityConnectsions = select.select(
-				[self.server] + self.clients, [], [])
+				self._connections['tcpListen'] + self._connections['udpListen']
+				+ self._connections['broadcasts'] + self._connections['clients'], [], [])
 
 			for sock in toReadConnections:
 				try:
-					if sock is self.server: # new connection
-						client, addr = self.server.accept()
+					if sock in self._connections['tcpListen']: # new connection
+						client, addr = sock.accept()
 						self.clientConnectionOpened(client)
 					else:
 						parsed=sock.parseInput()
@@ -59,9 +74,9 @@ class PyCCBackendServer(object):
 					self.clientConnectionClosed(sock)
 
 	def clientConnectionOpened(self,clientSocket):
-		pyccConnection=backend.connection.PyCCConnection(clientSocket,self.nodeID,mode='server')
-		self.clients.append(pyccConnection)
-		self.plugins.clientConnectionOpened(clientSocket)
+		pyccConnection=backend.connection.PyCCConnection(clientSocket,self._nodeId,mode='server')
+		self._connections['clients'].append(pyccConnection)
+		self._plugins.clientConnectionOpened(clientSocket)
 		ip = pyccConnection.getpeername()[0]
 		print("+++ connection from %s" % ip)
 
@@ -69,21 +84,21 @@ class PyCCBackendServer(object):
 		try:
 			ip = clientSocket.getpeername()[0]
 			print("+++ connection to %s closed" % ip)
-			self.plugins.clientConnectionClosed(clientSocket)
+			self._plugins.clientConnectionClosed(clientSocket)
 			clientSocket.close()
 		except socket.error:
 			pass
 		finally:
-			self.clients.remove(clientSocket)
+			self._connections['clients'].remove(clientSocket)
 
 	def handleCommand(self,clientSocket,conElement):
 		if conElement.command.strip() == 'shutdown':
-			self.read = False
-		self.plugins.handleCommand(conElement)
+			self._read = False
+		self._plugins.handleCommand(conElement)
 
 	def status(self):
 		message=''
-		for connection in self.clients:
+		for connection in self._connections['clients']:
 				message+=str(connection)
 				message+='\n'
 		return message
@@ -91,15 +106,23 @@ class PyCCBackendServer(object):
 	def openConnection(self,host,port=62533):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect((host, port))
-		con=backend.connection.PyCCConnection(sock,self.nodeID)
-		self.clients.append(con)
+		con=backend.connection.PyCCConnection(sock,self._nodeId)
+		self._connections['clients'].append(con)
 
-	def getConnectionList(self,node):
+	def getConnectionList(self, node):
 		count=0
-		for con in self.clients:
-				if con.partnerNodeID==node:
+		for con in self._connections['clients']:
+				if con.partnerNodeId==node:
 						count+=1
 						yield con
 		if count==0:
 			# fix: open connection
 			pass
+
+	def getNodeId(self):
+		return self._nodeId
+
+	def addBroadcastAddress(self,address):
+		udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		udpSocket.connect((self.address, self._serverPort))
+		self._connections['broadcasts'].append(backend.connection.PyCCConnection(udpSocket,self._nodeId,status='udp'))
