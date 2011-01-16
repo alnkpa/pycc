@@ -94,14 +94,19 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.config(state = 'normal')
 		self.tChatWindow.insert('end','~ {0}:\n{1}\n\n'.format(user,message))
 		self.tChatWindow.config(state = 'disabled')
-
+		self.textDown()
+		
+		
 	def sendMessage(self, *event):
 		''' delete message from input window and show it in the chat window '''
+		
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
-			self.frontend.sendRequest(('getAccounts', message.encode('UTF-8'), self.messageSent))
+			self.frontend.sendRequest(('sendMessage', message.encode('UTF-8'), self.messageSent))
 			self.tText.delete('1.0','end')
+			
+			
 	
 	def messageSent(self, package):
 		if package.type == package.TYPE_RESPONSE:
@@ -193,6 +198,10 @@ class MainWindow(tk.Tk):
 		line = self.tText.index('insert').split('.')[0]
 		self.tText.mark_set('insert',line + '.0')
 		
+	def textDown(self):
+		self.tChatWindow.see(tk.END)
+		self.tText.see(tk.END)
+		print ('textdown')
 
 # open window if not imported
 if __name__ == '__main__':
