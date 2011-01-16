@@ -1,6 +1,7 @@
 ''' GUI for PYCC with resizing elements '''
 
 import tkinter as tk
+import Frontend
 
 class MainWindow(tk.Tk):
 
@@ -70,6 +71,11 @@ class MainWindow(tk.Tk):
 		self.lContacts.bind('<Double-ButtonPress-1>', self.startChat)
 		self.tText.bind('<KeyRelease-Return>', self.sendMessage)
 		self.tText.bind('<Shift-KeyRelease-Return>', self.newline)
+		
+		self.frontend = Frontend.Frontend()
+		started = self.frontend.startBackend()
+		if not started:
+			print('Fehler!!!!')
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
@@ -92,11 +98,14 @@ class MainWindow(tk.Tk):
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
-			self.frontend.sendRequest(('echo', message.decode('UTF-8'), self.messageSent)
+			self.frontend.sendRequest(('getAccounts', message.encode('UTF-8'), self.messageSent))
 			self.tText.delete('1.0','end')
 	
 	def messageSent(self, package):
-	    if package.type == package.
+		if package.type == package.TYPE_RESPONSE:
+			pass
+		elif package.type == package.TYPE_ERROR:
+			print('error', package.data)
 
 	def loadContacts(self, contacts):
 		''' fill contact list or add contact
