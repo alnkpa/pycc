@@ -76,6 +76,8 @@ class MainWindow(tk.Tk):
 		started = self.frontend.startBackend()
 		if not started:
 			print('Fehler!!!!')
+		else:
+			self.frontend.updateLoopTkinter(self)
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
