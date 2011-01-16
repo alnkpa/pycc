@@ -113,6 +113,7 @@ class MainWindow(tk.Tk):
 		else:
 			self.frontend.updateLoopTkinter(self)
 		
+		self.frontend.addCallback('newMessage', self.gotNewMessage)	
 		self.frontend.sendRequest('getAccounts', self.gotAccounts)
 
 	def windowClosing(self):
@@ -126,7 +127,12 @@ class MainWindow(tk.Tk):
 		for account in data:
 			h = account.split(':')
 			accounts.append(h[1])
-		self.loadContacts(accounts)	
+		self.loadContacts(accounts)
+	
+	def gotNewMessage(self, package):
+		'''Called when new message'''
+		#currently not implemented
+		pass	
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
@@ -150,16 +156,10 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.insert('end','~ {0}:\n{1}'.format(user,message))
 		self.tChatWindow.config(state = 'disabled')
 		self.textDown()
-<<<<<<< HEAD
-		
-		
-		
-=======
-				
->>>>>>> 84ca3b116c6e858bbd4067bab86270413e83fb8d
+	
+
 	def sendMessage(self, *event):
 		''' delete message from input window and show it in the chat window '''
-		
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
@@ -279,15 +279,11 @@ class MainWindow(tk.Tk):
 	def textDown(self):
 		self.tChatWindow.see(tk.END)
 		self.tText.see(tk.END)
-<<<<<<< HEAD
 		print ('textdown')
 
 	def changeColor(self):
 		pass
 
-	
-=======
->>>>>>> 84ca3b116c6e858bbd4067bab86270413e83fb8d
 
 # open window if not imported
 if __name__ == '__main__':
