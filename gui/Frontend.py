@@ -217,7 +217,7 @@ timeout are seconds
 		try:
 			self.update()
 		finally:
-			widget.after(timeout, self.startTkinterUpdateLoop, widget, timeout)
+			widget.after(timeout, self.updateLoopTkinter, widget, timeout)
 
 
 if __name__ == '__main__':
