@@ -50,6 +50,8 @@ class PyCCBackendServer(object):
 						if parsed is False :
 							self.clientConnectionClosed(sock)
 						elif type(parsed) is backend.connection.PyCCPackage:
+							ip = sock.getpeername()[0]
+							print("[%s] %s" % (ip, parsed))
 							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
 								self.handleCommand(sock,parsed)
 				except (backend.connection.ProtocolException,socket.error) as e:
@@ -75,8 +77,6 @@ class PyCCBackendServer(object):
 			self.clients.remove(clientSocket)
 
 	def handleCommand(self,clientSocket,conElement):
-		ip = clientSocket.getpeername()[0]
-		print("[%s] %s" % (ip, conElement))
 		if conElement.command.strip() == 'shutdown':
 			self.read = False
 		self.plugins.handleCommand(conElement)

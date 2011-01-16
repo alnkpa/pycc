@@ -36,9 +36,18 @@ try:
 		except KeyboardInterrupt:
 			command = input('PyCC: ')
 			if command.endswith('\\'):
-				data = input('>')
-				while data.endswith('\\'):
-					data += '\n' + input('>')
+				command = command[0:len(command)-1]
+				more=True
+				data = ''
+				while more:
+					newData=input('>')
+					if newData.endswith('\\'):
+						data += newData[0:len(newData)-1]
+						more = True
+					else:
+						data += newData
+						more = False
+					data += '\n'
 			else:
 				data = None
 			if command == 'quit':

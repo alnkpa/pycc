@@ -57,6 +57,7 @@ class PyCCConnection(object):
 		else:
 			self._nextComHandle = 1
 		self._buffer=bytearray()
+		self._callbacks={}
 
 	def _parseMessageStart(self):
 		self._element = PyCCPackage(connection=self)
@@ -145,7 +146,7 @@ class PyCCConnection(object):
 			self._element.data = None
 			self._buffer = self._buffer=bytearray()
 			self._boundary = None
-			return self._element
+			return self._getNewPackage(self._element)
 		elif type(result) is int:
 			pos = self._buffer.find(self._boundary,result)
 			if pos == -1: # boundry not yet recieved
@@ -162,7 +163,18 @@ class PyCCConnection(object):
 						self._buffer = self._buffer[1:]
 				#self._buffer = bytearray()
 				self._boundary = None
-				return self._element
+				return self._getNewPackage(self._element)
+
+	def _getNewPackage(self,package):
+		if ( package.type == PyCCPackage.TYPE_RESPONSE or \
+			package.type == PyCCPackage.TYPE_RESPONSE) \
+			and package.handle in self._callbacks:
+				callbackData = self._callbacks[package.handle]
+				if callbackData[0](package,callbackData[1]) is True:
+					del self._callbacks[package.handle]
+				return None
+		else:
+			return package
 
 	def newRequest(self):
 		""" build handle for a new reqeust"""
@@ -186,11 +198,19 @@ class PyCCConnection(object):
 		message+=data
 		self.send(message)
 
-	def sendRequest(self, package):
+	def sendRequest(self, package, callback = None, callbackExtraArg = None):
 		'''send new request to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		package.type=PyCCPackage.TYPE_REQUEST
+		if package.handle is None:
+			package.handle = self.newRequest()
+		if callback is not None:
+			if hasattr(callback, '__call__'):
+				self._callbacks[package.handle] = (callback,callbackExtraArg)
+			else:
+				raise ValueError('callback must be a function or None')
 		self.sendPackage(package)
+		return package.handle
 
 	def sendResponse(self, package):
 		'''send new response to connection partner
