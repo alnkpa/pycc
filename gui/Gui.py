@@ -131,11 +131,12 @@ class MainWindow(tk.Tk):
 	def showMessage(self,message,user):
 		''' print message slightly formated in the chat window '''
 		self.tChatWindow.config(state = 'normal')
-		self.tChatWindow.insert('end','~ {0}:\n{1}\n\n'.format(user,message))
+		if self.tChatWindow.get('1.0','end').strip() != '':
+			self.tChatWindow.insert('end','\n\n')	
+		self.tChatWindow.insert('end','~ {0}:\n{1}'.format(user,message))
 		self.tChatWindow.config(state = 'disabled')
 		self.textDown()
-		
-		
+				
 	def sendMessage(self, *event):
 		''' delete message from input window and show it in the chat window '''
 		
@@ -144,9 +145,7 @@ class MainWindow(tk.Tk):
 			self.showMessage(message,'Me')
 			self.frontend.sendRequest(('sendMessage', message.encode('UTF-8'), self.messageSent))
 			self.tText.delete('1.0','end')
-			
-			
-	
+				
 	def messageSent(self, package):
 		if package.type == package.TYPE_RESPONSE:
 			pass
@@ -235,7 +234,7 @@ class MainWindow(tk.Tk):
 	def cacheChat(self,name):
 		''' save content of tChatWindow and tText in cache list of name '''
 		cache = 'self.c' + name		
-		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip() + \'\\n\\n\'')
+		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip()')
 		exec(cache + '[1] = self.tText.get(\'1.0\',\'end\').strip()')
 
 	def readCache(self,name):
@@ -261,7 +260,6 @@ class MainWindow(tk.Tk):
 	def textDown(self):
 		self.tChatWindow.see(tk.END)
 		self.tText.see(tk.END)
-		print ('textdown')
 
 	
 
