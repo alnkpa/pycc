@@ -28,6 +28,8 @@ try:
 					handle=data.handle,command=data.command))
 				try:
 					print(data.data.decode('utf8'))
+				except AttributeError:
+					pass
 				except UnicodeError:
 					print(data.data)
 
