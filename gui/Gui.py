@@ -64,7 +64,9 @@ class MainWindow(tk.Tk):
 		self.rowconfigure(1 , weight = 1)
 		self.columnconfigure(0 , weight = 1)
 
-		self.lContacts.bind("<Double-ButtonPress-1>", self.startChat)
+		# define events
+		self.lContacts.bind('<Double-ButtonPress-1>', self.startChat)
+		self.tText.bind('<KeyPress-Return>', self.sendMessage)
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
@@ -82,7 +84,7 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.insert('end','~ {0}:\n{1}\n\n'.format(user,message))
 		self.tChatWindow.config(state = 'disabled')
 
-	def sendMessage(self):
+	def sendMessage(self, *event):
 		''' delete message from input window and show it in the chat window '''
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
