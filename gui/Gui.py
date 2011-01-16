@@ -102,8 +102,6 @@ class MainWindow(tk.Tk):
 		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 		self.bPreferences.config (relief = tk.SUNKEN)	
 		self.bContacts.config (relief = tk.RAISED)
-			
-
 
 	def displayContacts(self):
 		''' hide preferences and show contact list instead '''
