@@ -88,6 +88,11 @@ class MainWindow(tk.Tk):
 		self.lContacts.bind('<Double-ButtonPress-1>', self.startChat)
 		self.tText.bind('<KeyRelease-Return>', self.sendMessage)
 		self.tText.bind('<Shift-KeyRelease-Return>', self.newline)
+
+		
+		#frontend = Frontend()
+		#list = self.frontend.sendRequest('getAccounts')	
+		#print(list)
 		
 		self.frontend = Frontend.Frontend()
 		started = self.frontend.startBackend()
@@ -95,6 +100,17 @@ class MainWindow(tk.Tk):
 			print('Fehler!!!!')
 		else:
 			self.frontend.updateLoopTkinter(self)
+		
+		liste = self.frontend.sendRequest('getAccounts', self.gotAccounts)
+
+	def gotAccounts(self, package):
+		data = package.data.decode('utf-8')
+		data = data.split(',')
+		accounts = []
+		for account in data:
+			h = account.split(':')
+			accounts.append(h[1])
+		self.loadContacts(accounts)	
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
@@ -252,5 +268,8 @@ class MainWindow(tk.Tk):
 # open window if not imported
 if __name__ == '__main__':
 	window = MainWindow()
-	window.loadContacts(['Eric', 'Stanley', 'Kyle', 'Kenny', 'Martin', 'Leo', 'Dennis', 'Kevin', 'George', 'Maria', 'Achmed'])
+	#window.loadContacts(['Eric', 'Stanley', 'Kyle', 'Kenny', 'Martin', 'Leo', 'Dennis', 'Kevin', 'George', 'Maria', 'Achmed'])
+	#frontend = Frontend()
+	#list = self.frontend.sendRequest('getAccounts')	
+	#print(list)
 	window.mainloop()
