@@ -59,13 +59,14 @@ class MainWindow(tk.Tk):
 		
 		# preferences
 		self.fPreferences = tk.Frame(self)
+		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
+		self.sPreferences = tk.Scrollbar(self.fPreferences)
+		self.sPreferences.pack(side = 'right', fill='y')
 		self.luserPreferences = tk.Label(self.fPreferences, text = 'Username:')
 		self.luserPreferences.pack()
-		self.userNamePreferences = tk.Text(self.fPreferences, height = 1, width = 20)
+		self.userNamePreferences = tk.Text(self.fPreferences, height = 1, width = 22)
 		self.userNamePreferences.insert(tk.END, self.prefs.username)
 		self.userNamePreferences.pack()
-		self.sPreferences = tk.Scrollbar(self.fPreferences)
-		self.sPreferences.pack()
 		
 		
 		# chat buttons
