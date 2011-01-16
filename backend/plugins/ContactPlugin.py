@@ -14,21 +14,26 @@ class ContactPlugin(Plugin.Plugin):
 
 	def recvCommand(self,package):
 		''' Processes the given Command'''
-		if package.command=="addAccount":
-			self.addAccount(data)
-		elif package.command=="deleteAccount":
-			self.deleteAccount(data)
-		elif package.command=="getAccountName":
-			self.getAccountName(package.data,package)
-		elif	package.command=="getAccountHash":
-			self.getAccountHash(package.data,package)
-		elif package.command=="getAccounts":
+		try:
+			command, arg = package.command.split(" ")
+		except ValueError:
+			command = package.command
+		if command == "addAccount":
+			self.addAccount(arg)
+		elif command == "deleteAccount":
+			self.deleteAccount(arg)
+		elif command == "getAccountName":
+			self.getAccountName(arg,package)
+		elif command == "getAccountHash":
+			self.getAccountHash(arg,package)
+		elif command == "getAccounts":
 			self.getAccounts(package)
 	
 	def addAccount(self,data):
-		'''Adds a new contact to the contact storage'''		
+		'''Adds a new contact to the contact storage
+		Takes an argument with the form Hash:Name'''		
 		accountHash, accountName = data.split(":")		
-		contacts.append((accountHash,accountName))
+		self.contacts.append((accountHash,accountName))
 		
 	def deleteAccount(self,data):
 		'''Deletes a specific account by Name'''		
@@ -37,26 +42,26 @@ class ContactPlugin(Plugin.Plugin):
 		except ValueError:			
 			pass
 
-	def getAccountName(self,accountHash):
+	def getAccountName(self,accountHash,package):
 		'''Get a specific accountName'''
 		for contact in self.contacts:
 			if contact[0]==accountHash:
 				package.data = contact[1]				
 				package.connection.sendResponse(package)	
 
-	def getAccountHash(self,accountName):
-		'''Get a specific accontHash'''
-		for contact in contacts:
+	def getAccountHash(self, accountName, package):
+		'''Get a specific accountHash'''
+		for contact in self.contacts:
 			if contact[1]==accountName:
 				package.data = contact[0]				
+				print("eior")
 				package.connection.sendResponse(package)	#fixthat
 
 	def returnAccountHash(self,accountName):
-		'''Get a specific accontHash'''
+		'''Get a specific accountHash'''
 		for contact in contacts:
 			if contact[1]==accountName:
-				package.data = contact[0]
-				package.connection.sendResponse(package)
+				return contact[0]
 
 	def getAccounts(self,package):
 		'''Get all of the accounts, comma seperated accountHash:accountName pairs are returned'''		
