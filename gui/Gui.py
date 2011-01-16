@@ -96,47 +96,67 @@ class MainWindow(tk.Tk):
 		for contact in contacts:
 			self.lContacts.insert('end',contact)
 
-	def startChat(self, event):		
+	def startChat(self, event):
+		''' event: doubleclick on contact list
+		save current chat in cache
+		create new button in fChatSelection, create new cache for chat
+		'''	
+		# get contact's name from index
 		index = int(self.lContacts.curselection()[0])
 		name = self.lContacts.get(index)
+		# if chat with contact already exists, switch method
 		if name in self.openChats:
 			self.switchChat(name)
 		else:
 			self.title('PYCC - ' + name)
+			# cache current chat, clear windows
 			if self.curChat != '':
 				self.cacheChat(self.curChat)
+				self.clearChat()
+			# dynamically create button and cache name from contact's name with exec
 			button = 'self.b' + name
 			cache = 'self.c' + name
 			buttonFunc = lambda s = self, n = name: s.switchChat(n)
 			exec(button + '= tk.Button(self.fChatSelection, text = name, command = buttonFunc)')
 			exec(button + '.pack(side = \'left\')')
-			exec(cache + '= [name,\'\',\'\']')
-			self.readCache(name)
+			exec(cache + '= [\'\',\'\']')
+			
 			self.openChats.append(name)
 			self.curChat = name
 
 	def switchChat(self,name):
+		''' switch from on chat into another
+		cache current chat, insert new chat content into windows		
+		'''
 		self.title('PYCC - ' + name)
 		self.cacheChat(self.curChat)
+		self.clearChat()
 		self.readCache(name)
 		self.openChats.append(name)
 		self.curChat = name
 		
 	def cacheChat(self,name):
+		''' save content of tChatWindow and tText in cache list of name '''
 		cache = 'self.c' + name		
-		exec(cache + '[0] = name')
-		exec(cache + '[1] = self.tChatWindow.get(\'1.0\',\'end\').strip()')
-		exec(cache + '[2] = self.tText.get(\'1.0\',\'end\').strip()')
+		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip()')
+		exec(cache + '[1] = self.tText.get(\'1.0\',\'end\').strip()')
 
 	def readCache(self,name):
+		''' insert content from cache list of name into tChatWindow and tText '''
+		# tChatWindow is read-only -> has to made editable first
+		self.tChatWindow.config(state = 'normal')
+		cache = 'self.c' + name	
+		exec('self.tChatWindow.insert(\'end\', ' +cache + '[0])')
+		exec('self.tText.insert(\'end\', ' + cache + '[1])')
+		self.tChatWindow.config(state = 'disable')
+
+	def clearChat(self):
+		''' remove all content from tChatWindow and tTest '''
 		self.tChatWindow.config(state = 'normal')
 		self.tChatWindow.delete('1.0','end')
 		self.tText.delete('1.0','end')
-		cache = 'self.c' + name	
-		exec('self.tChatWindow.insert(\'end\', ' +cache + '[1])')
-		exec('self.tText.insert(\'end\', ' + cache + '[2])')
 		self.tChatWindow.config(state = 'disable')
-
+		
 
 # open window if not imported
 if __name__ == '__main__':
