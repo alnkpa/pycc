@@ -29,7 +29,6 @@ con is of type backend.connection.PyCCPackage
 			if len(args)!=3:
 				return None
 			else:
-				print(args)
 				self.PyCCManager.server.openConnection(args[1],int(args[2]))
 		elif package.command.startswith('relay'):
 			args=package.command.split(' ')
@@ -37,4 +36,15 @@ con is of type backend.connection.PyCCPackage
 				return None
 			else:
 				for con in self.PyCCManager.server.getConnectionList(args[1]):
-					con.send(package.data)
+					data = package.data.decode('utf8').split('\n')
+					newPackage = connection.PyCCPackage()
+					newPackage.command = data[0]
+					newPackage.data = "\n".join(data[1:])
+					con.sendRequest(newPackage,callback = self.handleResponse,
+						callbackExtraArg = package)
+
+	def handleResponse(self, newPackage, orgPackage = None):
+		newPackage.handle = orgPackage.handle
+		newPackage.command = orgPackage.command
+		orgPackage.connection.sendPackage(newPackage)
+		return None
