@@ -9,7 +9,7 @@ import backend.connection
 class PyCCBackendServer(object):
 
 	def __init__(self,id):
-		self.nodeID=id
+		self._nodeId=id
 		self._server = None
 		self._serverAddr = None
 		self._serverPort = None
@@ -35,7 +35,7 @@ class PyCCBackendServer(object):
 		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 		udpSocket.bind((self._serverAddr, self._serverPort))
-		pyccConnection=backend.connection.PyCCConnection(udpSocket,self.nodeID,status='udp',mode='server')
+		pyccConnection=backend.connection.PyCCConnection(udpSocket,self._nodeId,status='udp',mode='server')
 		self._connections['udpListen'].append(pyccConnection)
 		# save used port
 		with open('.port','w') as portfile:
@@ -74,7 +74,7 @@ class PyCCBackendServer(object):
 					self.clientConnectionClosed(sock)
 
 	def clientConnectionOpened(self,clientSocket):
-		pyccConnection=backend.connection.PyCCConnection(clientSocket,self.nodeID,mode='server')
+		pyccConnection=backend.connection.PyCCConnection(clientSocket,self._nodeId,mode='server')
 		self._connections['clients'].append(pyccConnection)
 		self._plugins.clientConnectionOpened(clientSocket)
 		ip = pyccConnection.getpeername()[0]
@@ -106,13 +106,13 @@ class PyCCBackendServer(object):
 	def openConnection(self,host,port=62533):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect((host, port))
-		con=backend.connection.PyCCConnection(sock,self.nodeID)
+		con=backend.connection.PyCCConnection(sock,self._nodeId)
 		self._connections['clients'].append(con)
 
 	def getConnectionList(self, node):
 		count=0
 		for con in self._connections['clients']:
-				if con.partnerNodeID==node:
+				if con.partnerNodeId==node:
 						count+=1
 						yield con
 		if count==0:
@@ -120,9 +120,9 @@ class PyCCBackendServer(object):
 			pass
 
 	def getNodeId(self):
-		return self._nodeID
+		return self._nodeId
 
 	def addBroadcastAddress(self,address):
 		udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		udpSocket.connect((self.address, self._serverPort))
-		self._connections['broadcasts'].append(backend.connection.PyCCConnection(udpSocket,self._nodeID,status='udp'))
+		self._connections['broadcasts'].append(backend.connection.PyCCConnection(udpSocket,self._nodeId,status='udp'))

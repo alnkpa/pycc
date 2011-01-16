@@ -16,7 +16,7 @@ con is of type backend.connection.PyCCPackage
 '''
 		if package.type != connection.PyCCPackage.TYPE_REQUEST:
 			return
-		if package.command == 'getnodeid':
+		if package.command == 'getNodeId':
 			package.data=self.PyCCManager.server.getNodeId()
 			package.connection.sendResponse(package)
 		elif package.command == 'status':
