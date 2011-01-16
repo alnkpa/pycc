@@ -16,17 +16,18 @@ class MainWindow(tk.Tk):
 		# selection between contact list and preferences
 		self.fMenue = tk.Frame(self)
 		self.fMenue.grid(row = 0, column = 1)
-		self.bContacts = tk.Button(self.fMenue, text = 'C', command = self.displayContacts)
+		self.bContacts = tk.Button(self.fMenue, text = 'Contacts', command = self.displayContacts, width = 6)
 		self.bContacts.pack(side = 'left')
-		self.bPreferences = tk.Button(self.fMenue, text = 'P', command = self.displayPreferences)
+		self.bPreferences = tk.Button(self.fMenue, text = 'Prefs', command = self.displayPreferences, width = 6)
 		self.bPreferences.pack(side = 'left')
 
 		# chat window
 		self.fChatWindow = tk.Frame(self)	
 		self.fChatWindow.grid(row = 1, column = 0, sticky = 'nswe')
 		self.sChatWindow = tk.Scrollbar(self.fChatWindow)
-		self.sChatWindow.pack(side = 'right', fill = 'y')	
-		self.tChatWindow = tk.Text(self.fChatWindow, yscrollcommand = self.sChatWindow.set, height = 20)
+		self.sChatWindow.pack(side = 'right', fill = 'y')
+		# read-only; switch state back to 'normal' to insert text	
+		self.tChatWindow = tk.Text(self.fChatWindow, yscrollcommand = self.sChatWindow.set, height = 20, state = 'disabled')
 		self.tChatWindow.pack(side = 'left', fill = 'both', expand = True)
 		self.sChatWindow.config(command = self.tChatWindow.yview)
 
@@ -54,7 +55,7 @@ class MainWindow(tk.Tk):
 		self.lPreferences.pack()
 		
 		# send button
-		self.bSend = tk.Button(self, text = 'Send')
+		self.bSend = tk.Button(self, text = 'Send', command = self.sendMessage, width = 10)
 		self.bSend.grid(row = 3, column = 0, sticky = 'w')
 
 		# define expanding rows and columns
@@ -69,9 +70,19 @@ class MainWindow(tk.Tk):
 		self.fPreferences.grid_forget()
 		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 
+	def showMessage(self,message,user):
+		self.tChatWindow.config(state = 'normal')
+		self.tChatWindow.insert('end','~ {0}:\n{1}\n\n'.format(user,message))
+		self.tChatWindow.config(state = 'disabled')
+
+	def sendMessage(self):
+		if self.tText.get('1.0','end').strip() != '':
+			message = self.tText.get('1.0','end').strip()
+			self.showMessage(message,'Me')
+			self.tText.delete('1.0','end')
+
+
 # open window if not imported
 if __name__ == '__main__':
 	window = MainWindow()
 	window.mainloop()
-
-
