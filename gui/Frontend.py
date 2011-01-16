@@ -113,11 +113,11 @@ The callback function will be called with a packet as first and only argument.
 			raise ValueError('command must be of type str not of type {0}'.format(type(command)))
 		if not hasattr(callback, '__call__'):
 			raise ValueError('callback must be callable like a function')
-		self.callback[command]= callback
+		self.callbacks[command]= callback
 
 	def _handleCommand(self, packet):
 		'''find and call the callback function for the given packet.'''
-		for comm in self.callback:
+		for comm in self.callbacks:
 			if type(comm) is str and packet.command.startswith(comm):
 				return self.callback[comm](packet)
 		
@@ -140,8 +140,8 @@ return wether the connection is alive
 				continue
 			if package is False:
 				return False
-			if packet.type == packet.TYPE_REQUEST:
-				self._handleCommand(packet)
+			if package.type == package.TYPE_REQUEST:
+				self._handleCommand(package)
 				continue
 			callback= self.callbacks.get(package.handle, None)
 			if callback is None:
