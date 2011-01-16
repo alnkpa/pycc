@@ -1,8 +1,7 @@
-''' GUI for PYCC with resizing elements '''
+''' GUI for PYCC '''
 
 import tkinter as tk
-import Frontend
-import Preferences
+import Frontend, Preferences
 
 class MainWindow(tk.Tk):
 
@@ -13,8 +12,10 @@ class MainWindow(tk.Tk):
 		self.openChats = []
 		self.curChat = ''
 		
-		# make an instance of preferences
-		self.prefs = Preferences.Preferences('preferences.cfg')
+		# initiate preferences
+		self.Preferences = Preferences.Preferences('preferences.cfg')
+		self.username = self.Preferences.prefs['username']
+		self.textcolor = self.Preferences.prefs['textcolor']
 		
 		# chat selection
 		self.fChatSelection = tk.Frame(self)
@@ -25,10 +26,10 @@ class MainWindow(tk.Tk):
 		# selection between contact list and preferences
 		self.fMenue = tk.Frame(self)
 		self.fMenue.grid(row = 0, column = 1)
-		self.bContacts = tk.Button(self.fMenue, text = 'Contacts', command = self.displayContacts, width = 6)
+		self.bContacts = tk.Button(self.fMenue, text = 'Contacts', command = self.displayContacts, width = 6, fg = self.textcolor)
 		self.bContacts.config(relief = tk.SUNKEN)
 		self.bContacts.pack(side = 'left')
-		self.bPreferences = tk.Button(self.fMenue, text = 'Prefs', command = self.displayPreferences, width = 6)
+		self.bPreferences = tk.Button(self.fMenue, text = 'Prefs', command = self.displayPreferences, width = 6, fg = self.textcolor)
 		self.bPreferences.pack(side = 'left')
 
 		# chat window
@@ -37,7 +38,7 @@ class MainWindow(tk.Tk):
 		self.sChatWindow = tk.Scrollbar(self.fChatWindow)
 		self.sChatWindow.pack(side = 'right', fill = 'y')
 		# read-only; switch back to state = 'normal' to insert text	
-		self.tChatWindow = tk.Text(self.fChatWindow, yscrollcommand = self.sChatWindow.set, height = 20, state = 'disabled')
+		self.tChatWindow = tk.Text(self.fChatWindow, yscrollcommand = self.sChatWindow.set, height = 20, state = 'disabled', fg = self.textcolor)
 		self.tChatWindow.pack(side = 'left', fill = 'both', expand = True)
 		self.sChatWindow.config(command = self.tChatWindow.yview)
 
@@ -46,7 +47,7 @@ class MainWindow(tk.Tk):
 		self.fText.grid(row = 2, column = 0, sticky = 'nswe')
 		self.sText = tk.Scrollbar(self.fText)
 		self.sText.pack(side = 'right', fill = 'y')	
-		self.tText = tk.Text(self.fText, yscrollcommand = self.sText.set, height = 4, state = 'disabled')
+		self.tText = tk.Text(self.fText, yscrollcommand = self.sText.set, height = 4, state = 'disabled', fg = self.textcolor)
 		self.tText.pack(side = 'left', fill = 'x', expand = True)
 		self.sText.config(command = self.tText.yview)
 
@@ -54,35 +55,38 @@ class MainWindow(tk.Tk):
 		self.fPreferences = tk.Frame(self)
 		self.sPreferences = tk.Scrollbar(self.fPreferences)
 		self.sPreferences.pack(side = 'right', fill='y')
-		self.luserPreferences = tk.Label(self.fPreferences, text = 'Username:')
-		self.luserPreferences.pack()
-		#username 
-		self.tUserName = tk.Text(self.fPreferences, height = 1, width = 15)
-		self.tUserName.insert('end', self.prefs.username)
-		self.tUserName.pack(padx = 3)
-		#textcolor
-		v = tk.StringVar()
+		# username
+		self.fUserName = tk.Frame(self.fPreferences)
+		self.fUserName.pack(padx = 10, pady = 10, anchor = 'w')				
+		self.lUserName = tk.Label(self.fUserName, text = 'Username:', fg = self.textcolor)
+		self.lUserName.pack(anchor = 'w', pady = 5)
+		self.eUserName = tk.Entry(self.fUserName, width = 15, fg = self.textcolor)
+		self.eUserName.insert('end', self.username)
+		self.eUserName.pack(anchor = 'w')
+		# textcolor
+		self.tc = tk.StringVar()
 		self.fColors = tk.Frame(self.fPreferences)
-		self.fColors.pack()
-		self.lColors = tk.Label(self.fColors, text = '\nTextcolor:', height = 2)
-		self.lColors.pack()
-		self.rbBlack = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'black', indicatoron = 0, activebackground = '#000000',selectcolor = '#000000', bg = '#444444')		
+		self.fColors.pack(padx = 10, anchor = 'w')
+		self.lColors = tk.Label(self.fColors, text = 'Textcolor:', fg = self.textcolor)
+		self.lColors.pack(anchor = 'w', pady = 5)
+		self.rbBlack = tk.Radiobutton(self.fColors, width = 3, variable = self.tc, value = '#000000', indicatoron = 0, activebackground = '#000000',selectcolor = '#000000', bg = '#444444')		
 		self.rbBlack.pack(side = 'left')
-		self.rbRed = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'red', indicatoron = 0, activebackground = '#FF0000',selectcolor = '#FF0000', bg = '#DD4444')
+		self.rbRed = tk.Radiobutton(self.fColors, width = 3, variable = self.tc, value = '#FF0000', indicatoron = 0, activebackground = '#FF0000',selectcolor = '#FF0000', bg = '#DD4444')
 		self.rbRed.pack(side = 'left')
-		self.rbBlue = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'blue', indicatoron = 0, activebackground = '#0000FF',selectcolor = '#0000FF', bg = '#4444CC')
+		self.rbBlue = tk.Radiobutton(self.fColors, width = 3, variable = self.tc, value = '#0000FF', indicatoron = 0, activebackground = '#0000FF',selectcolor = '#0000FF', bg = '#4444CC')
 		self.rbBlue.pack(side = 'left')
-		self.rbGreen = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'green', indicatoron = 0, activebackground = '#00FF00',selectcolor = '#00FF00', bg = '#44DD44')
+		self.rbGreen = tk.Radiobutton(self.fColors, width = 3, variable = self.tc, value = '#00FF00', indicatoron = 0, activebackground = '#00FF00',selectcolor = '#00FF00', bg = '#44DD44')
 		self.rbGreen.pack(side = 'left')
-		self.bSave = tk.Button(self.fPreferences, text = 'Save', width = 8)
-		self.bSave.pack(pady = 5)
+
+		self.bSave = tk.Button(self.fPreferences, text = 'Save', width = 8, command = self.savePrefs, fg = self.textcolor)
+		self.bSave.pack(padx = 10, pady = 20, anchor = 'w')
  
 		# contact list
 		self.fContacts = tk.Frame(self)	
 		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 		self.sContacts = tk.Scrollbar(self.fContacts)
 		self.sContacts.pack(side = 'right', fill = 'y')	
-		self.lContacts = tk.Listbox(self.fContacts, yscrollcommand = self.sContacts.set)
+		self.lContacts = tk.Listbox(self.fContacts, yscrollcommand = self.sContacts.set, fg = self.textcolor)
 		self.lContacts.pack(side = 'left', fill = 'y')
 		self.sContacts.config(command = self.lContacts.yview)
 		
@@ -90,9 +94,9 @@ class MainWindow(tk.Tk):
 		self.fChatButtons = tk.Frame(self)
 		self.fChatButtons.grid(row = 3, column = 0, sticky = 'w')
 			
-		self.bSend = tk.Button(self.fChatButtons, text = 'Send', command = self.sendMessage, width = 10, state = 'disabled')
+		self.bSend = tk.Button(self.fChatButtons, text = 'Send', command = self.sendMessage, width = 10, state = 'disabled', fg = self.textcolor)
 		self.bSend.pack(side = 'left')		
-		self.bCloseChat = tk.Button(self.fChatButtons, text = 'Close Chat', command = self.closeChat, width = 10, state = 'disabled')
+		self.bCloseChat = tk.Button(self.fChatButtons, text = 'Close Chat', command = self.closeChat, width = 10, state = 'disabled', fg = self.textcolor)
 		self.bCloseChat.pack(side = 'left')
 
 		# define expanding rows and columns
@@ -166,7 +170,7 @@ class MainWindow(tk.Tk):
 		''' delete message from input window and show it in the chat window '''
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
-			self.showMessage(message,'Me')
+			self.showMessage(message,self.username)
 			print(self.messageSent)
 			self.frontend.sendRequest(('sendMessage', (self.curChat + ':' + message).encode('utf-8'), self.messageSent))
 			self.tText.delete('1.0','end')
@@ -212,7 +216,7 @@ class MainWindow(tk.Tk):
 			button = 'self.b{0}'.format(name)
 			cache = 'self.c{0}'.format(name)
 			buttonFunc = lambda s = self, n = name: s.switchChat(n)
-			exec('{0} = tk.Button(self.fChatSelection, text = name, command = buttonFunc)'.format(button))
+			exec('{0} = tk.Button(self.fChatSelection, text = name, command = buttonFunc, fg = self.textcolor)'.format(button))
 			# style button, mark as selected button
 			exec('{0}.config(relief = tk.SUNKEN)'.format(button))
 			# set currently active button to pressed button
@@ -284,8 +288,26 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.see(tk.END)
 		self.tText.see(tk.END)
 
-	def changeColor(self):
-		pass
+	def savePrefs(self):
+		self.username = self.eUserName.get()
+		self.textcolor = self.tc.get()
+		self.Preferences.setPreferences(self.username, self.textcolor)
+		self.refreshWidgets()
+
+	def refreshWidgets(self):
+		self.bContacts.config(fg = self.textcolor)
+		self.bPreferences.config(fg = self.textcolor)
+		self.tChatWindow.config(fg = self.textcolor)
+		self.tText.config(fg = self.textcolor)
+		self.lUserName.config(fg = self.textcolor)
+		self.eUserName.config(fg = self.textcolor)
+		self.lColors.config(fg = self.textcolor)
+		self.lContacts.config(fg = self.textcolor)
+		self.bSend.config(fg = self.textcolor)
+		self.bCloseChat.config(fg = self.textcolor)
+		for name in self.openChats:
+			exec('self.b{0}.config(fg = self.textcolor)'.format(name))
+		
 
 
 # open window if not imported

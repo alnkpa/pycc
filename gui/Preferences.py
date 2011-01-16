@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 class PreferencesException(Exception):
@@ -8,13 +7,22 @@ class PreferencesException(Exception):
 
 class Preferences:
 	'''Class saving the preferences of the local user'''
-	def __init__(self, filename):
-		f = open(filename)
-		line = f.readline().split(':')
-		if len(line) != 3 or line[0] != 'username':
-			raise PreferencesException()
-		
-		self.username = line[1]
-		#print(self.username)
+	def __init__(self, config):
+		self.config = config
+		self.prefs = {}
 
-P = Preferences('preferences.cfg')
+		fObj = open(self.config, 'r')
+		for line in fObj:
+			line = line.split(':')
+			if len(line) != 3:
+				raise PreferencesException()
+			self.prefs[line[0]] = line[1]
+		fObj.close()
+
+	def setPreferences(self, username, textcolor):
+		self.prefs['username'] = username
+		self.prefs['textcolor'] = textcolor
+		fObj = open(self.config, 'w')
+		for key in self.prefs:
+			fObj.write('{0}:{1}:\n'.format(key,self.prefs[key]))
+		fObj.close
