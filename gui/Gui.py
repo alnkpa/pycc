@@ -90,10 +90,6 @@ class MainWindow(tk.Tk):
 		self.tText.bind('<Shift-KeyRelease-Return>', self.newline)
 		self.protocol('WM_DELETE_WINDOW', self.windowClosing)
 		
-		#frontend = Frontend()
-		#list = self.frontend.sendRequest('getAccounts')	
-		#print(list)
-		
 		self.frontend = Frontend.Frontend()
 		started = self.frontend.startBackend()
 		if not started:
@@ -110,7 +106,6 @@ class MainWindow(tk.Tk):
 	def gotAccounts(self, package):
 		data = package.data.decode('utf-8')
 		data = data.split(',')
-		print(data)
 		accounts = []
 		for account in data:
 			h = account.split(':')
@@ -123,8 +118,6 @@ class MainWindow(tk.Tk):
 		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 		self.bPreferences.config (relief = tk.SUNKEN)	
 		self.bContacts.config (relief = tk.RAISED)
-			
-
 
 	def displayContacts(self):
 		''' hide preferences and show contact list instead '''
@@ -148,7 +141,8 @@ class MainWindow(tk.Tk):
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
-			self.frontend.sendRequest(('sendMessage', message.encode('UTF-8'), self.messageSent))
+			print(self.messageSent)
+			self.frontend.sendRequest(('sendMessage', (self.curChat + ':' + message).encode('utf-8'), self.messageSent))
 			self.tText.delete('1.0','end')
 				
 	def messageSent(self, package):
