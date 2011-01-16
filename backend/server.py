@@ -94,7 +94,7 @@ class PyCCBackendServer(object):
 		con=backend.connection.PyCCConnection(sock,self.nodeID)
 		self.clients.append(con)
 
-	def getConnectionList(self,node):
+	def getConnectionList(self, node):
 		count=0
 		for con in self.clients:
 				if con.partnerNodeID==node:

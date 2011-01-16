@@ -4,13 +4,14 @@ class ContactPlugin(Plugin.Plugin):
 	''' Manages all the Contacts '''
 	registeredCommands = ["addAccount","deleteAccount","getAccountName","getAccountHash","getAccounts"]	
 	def __init__(self,PyCCManager):
-		'''initially get all '''
+		'''initially get all'''
 		Plugin.Plugin.__init__(self,PyCCManager)
 		self.contacts = []
 		f = open(".contacts")
 		append = self.contacts.append
 		for line in f.readlines():
-			append((line.strip().split(":")[0],line.strip().split(":")[1]))		
+			if line != "\n":
+				append((line.strip().split(":")[0],line.strip().split(":")[1]))		
 
 	def recvCommand(self,package):
 		''' Processes the given Command'''
@@ -26,10 +27,11 @@ class ContactPlugin(Plugin.Plugin):
 			self.getAccountHash(arg,package)
 		elif command == "getAccounts":
 			self.getAccounts(package)
-	
+
 	def addAccount(self,data):
 		'''Adds a new contact to the contact storage
-		Takes an argument with the form Hash:Name'''		
+		Takes an argument with the form Hash:Name'''
+		data = data.decode("utf-8")
 		accountHash, accountName = data.split(":")		
 		self.contacts.append((accountHash,accountName))
 		
@@ -37,7 +39,7 @@ class ContactPlugin(Plugin.Plugin):
 		'''Deletes a specific account by Name'''		
 		try:		
 			self.contacts.remove((data, returnAccountHash(data)))
-		except ValueError:			
+		except ValueError:
 			pass
 
 	def getAccountName(self,accountHash,package):
@@ -51,15 +53,22 @@ class ContactPlugin(Plugin.Plugin):
 		'''Get a specific accountHash'''
 		for contact in self.contacts:
 			if contact[1]==accountName:
-				package.data = contact[0]				
+				package.data = contact[0]
 				print("eior")
 				package.connection.sendResponse(package)	#fixthat
 
 	def returnAccountHash(self,accountName):
 		'''Get a specific accountHash'''
-		for contact in contacts:
+		for contact in self.contacts:
 			if contact[1]==accountName:
 				return contact[0]
+		raise KeyError
+	
+	def returnAccountAddress(self, accountName):
+		'''Get a specific accountAddress'''
+		for contact in self.contacts:
+			if contact[1] == accountName:
+				return contact[2]
 		raise KeyError
 
 	def getAccounts(self,package):
