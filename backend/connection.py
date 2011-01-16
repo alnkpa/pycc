@@ -40,7 +40,7 @@ class PyCCPackage(object):
 class PyCCConnection(object):
 	version='0.1'
 
-	def __init__(self, socket, nodeid, mode='client'):
+	def __init__(self, socket, nodeid, mode = 'client', status = 'new'):
 		""" create a new PyCC-Connection over the socket socket (server or client mode)
 		    socket: tcp-connection instance
 		    mode: client or server (e.g. helpful for protocol init)"""
@@ -48,9 +48,9 @@ class PyCCConnection(object):
 		self._nodeid = nodeid
 		self.partnerNodeID = None
 		self._mode = mode
-		self._status = 'new'
+		self._status = status
 		self._boundary = None
-		if self._mode == 'server':
+		if self._mode == 'server' and self._status != 'udp':
 			self._nextComHandle = 0
 			self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
 			self._status='init'
@@ -119,7 +119,8 @@ class PyCCConnection(object):
 				if len(tmp)!=3 or tmp[0]!='PyCC':
 					raise ProtocolException(6,'wrong protocol (header)')
 				self.partnerNodeID=tmp[2].strip()
-				self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
+				if self._mode != 'udp':
+					self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
 				self._status='open'
 				newData=newData[newData.find(bytearray(b'\n'))+1:]
 				if len(newData)==0:
@@ -134,6 +135,16 @@ class PyCCConnection(object):
 			if tmp[1].find(',')>-1:
 				self.sendstr('OK. {0}\n'.format(tmp[1].split(',')[-1]))
 			self._status = 'open'
+			newData=newData[newData.find(bytearray(b'\n'))+1:]
+			if len(newData)==0:
+				return None
+		elif self._status == 'udp':
+			print("new udp")
+			print(newData.decode('utf8'))
+			tmp=newData.decode('utf8').split("|")
+			if len(tmp)!=3 or tmp[0]!='PyCC':
+				raise ProtocolException(6,'wrong protocol (header)')
+			self.partnerNodeID=tmp[2].strip()
 			newData=newData[newData.find(bytearray(b'\n'))+1:]
 			if len(newData)==0:
 				return None
@@ -182,6 +193,8 @@ class PyCCConnection(object):
 		return self._nextComHandle-2
 
 	def sendPackage(self,package):
+		if self._status == 'udp' and self._mode == 'server':
+			return True
 		if package.data is None:
 			boundary=''
 			data=b''
@@ -245,7 +258,10 @@ class PyCCConnection(object):
 		return self._socket.fileno()
 
 	def getpeername(self):
-		return self._socket.getpeername()
+		if self._status == 'udp':
+			return ('udp','')
+		else:
+			return self._socket.getpeername()
 
 	def close(self, *args):
 		'''shut down the socket connection 

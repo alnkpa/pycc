@@ -51,8 +51,12 @@ try:
 			try:
 				server.listen(network,port)
 				break
-			except socket.error:
-				port+=1
+			except socket.error as e:
+				# [Errno 98] Address already in use
+				if e.args[0] == 98:
+					port+=1
+				else:
+					raise
 		else:
 			server.listen(network,port)
 		
