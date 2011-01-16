@@ -165,7 +165,8 @@ class MainWindow(tk.Tk):
 		cache current chat, insert new chat content into windows		
 		'''
 		self.title('PYCC - ' + name)
-		self.cacheChat(self.curChat)
+		if self.curChat != '':
+			self.cacheChat(self.curChat)
 		self.clearChat()
 		self.readCache(name)
 		self.openChats.append(name)
@@ -175,17 +176,22 @@ class MainWindow(tk.Tk):
 		exec('self.b' + name + '.config(relief = tk.SUNKEN)')
 
 	def closeChat(self):
-		pass
-		"""button = 'self.b' + self.curChat
+		button = 'self.b' + self.curChat
 		cache = 'self.c' + self.curChat
 		exec(button + '.forget()')
 		exec('del(' + button + ')')
 		exec('del(' + cache + ')')
 		i = self.openChats.index(self.curChat)
 		self.openChats.pop(i)
-		self.curChat = self.openChats[i-1]
-		self.switchChat(self.curChat)
-		"""
+		self.curChat = ''
+		if i > 0:
+			self.switchChat(self.openChats[i-1])
+		else:
+			self.openChats = []			
+			self.clearChat()			
+			self.tText.config(state = 'disabled')
+			self.bSend.config(state = 'disabled')
+			self.bCloseChat.config(state = 'disabled')
 
 	def cacheChat(self,name):
 		''' save content of tChatWindow and tText in cache list of name '''
