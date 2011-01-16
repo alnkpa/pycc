@@ -182,19 +182,17 @@ class MainWindow(tk.Tk):
 				self.cacheChat(self.curChat)
 				self.clearChat()
 			# dynamically create button and cache name from contact's name with exec
-			button = 'self.b' + name
-			cache = 'self.c' + name
+			button = 'self.b{0}'.format(name)
+			cache = 'self.c{0}'.format(name)
 			buttonFunc = lambda s = self, n = name: s.switchChat(n)
-			exec(button + '= tk.Button(self.fChatSelection, text = name, command = buttonFunc)')
+			exec('{0} = tk.Button(self.fChatSelection, text = name, command = buttonFunc)'.format(button))
 			# style button, mark as selected button
-			exec(button + '.config(relief = tk.SUNKEN)')
+			exec('{0}.config(relief = tk.SUNKEN)'.format(button))
 			# set currently active button to pressed button
-			exec("self.activeButton = " + button)
-			exec(button + '.pack(side = \'left\')')
-			exec(cache + '= [\'\',\'\']')
+			exec("self.activeButton = {0}".format(button))
+			exec('{0}.pack(side = \'left\')'.format(button))
+			exec('{0} = [\'\',\'\']'.format(cache))
 
-
-			
 			self.openChats.append(name)
 			self.curChat = name
 
@@ -202,22 +200,22 @@ class MainWindow(tk.Tk):
 		''' switch from on chat into another
 		cache current chat, insert new chat content into windows		
 		'''
-		self.title('PYCC - ' + name)
+		self.title('PYCC - {0}'.format(name))
 		if self.curChat != '':
 			self.cacheChat(self.curChat)
 		self.clearChat()
 		self.readCache(name)
 		self.curChat = name
 		self.activeButton.config(relief = tk.RAISED)
-		exec('self.activeButton = self.b' + name)
-		exec('self.b' + name + '.config(relief = tk.SUNKEN)')
+		exec('self.activeButton = self.b{0}'.format(name))
+		exec('self.b{0}.config(relief = tk.SUNKEN)'.format(name))
 
 	def closeChat(self):
-		button = 'self.b' + self.curChat
-		cache = 'self.c' + self.curChat
-		exec(button + '.forget()')
-		exec('del(' + button + ')')
-		exec('del(' + cache + ')')
+		button = 'self.b{0}'.format(self.curChat)
+		cache = 'self.c{0}'.format(self.curChat)
+		exec('{0}.forget()'.format(button))
+		exec('del({0})'.format(button))
+		exec('del({0})'.format(cache))
 		i = self.openChats.index(self.curChat)
 		self.openChats.pop(i)
 		self.curChat = ''
@@ -231,17 +229,17 @@ class MainWindow(tk.Tk):
 
 	def cacheChat(self,name):
 		''' save content of tChatWindow and tText in cache list of name '''
-		cache = 'self.c' + name		
-		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip()')
-		exec(cache + '[1] = self.tText.get(\'1.0\',\'end\').strip()')
+		cache = 'self.c{0}'.format(name)		
+		exec('{0}[0] = self.tChatWindow.get(\'1.0\',\'end\').strip()'.format(cache))
+		exec('{0}[1] = self.tText.get(\'1.0\',\'end\').strip()'.format(cache))
 
 	def readCache(self,name):
 		''' insert content from cache list of name into tChatWindow and tText '''
 		# tChatWindow is read-only -> has to made editable first
 		self.tChatWindow.config(state = 'normal')
-		cache = 'self.c' + name	
-		exec('self.tChatWindow.insert(\'end\', ' +cache + '[0])')
-		exec('self.tText.insert(\'end\', ' + cache + '[1])')
+		cache = 'self.c{0}'.format(name)	
+		exec('self.tChatWindow.insert(\'end\', {0}[0])'.format(cache))
+		exec('self.tText.insert(\'end\', {0}[1])'.format(cache))
 		self.tChatWindow.config(state = 'disable')
 
 	def clearChat(self):
@@ -258,8 +256,6 @@ class MainWindow(tk.Tk):
 	def textDown(self):
 		self.tChatWindow.see(tk.END)
 		self.tText.see(tk.END)
-
-	
 
 # open window if not imported
 if __name__ == '__main__':
