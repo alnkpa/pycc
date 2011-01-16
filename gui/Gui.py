@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import Frontend
+import Preferences
 
 class MainWindow(tk.Tk):
 
@@ -11,7 +12,9 @@ class MainWindow(tk.Tk):
 		self.title("PYCC")
 		self.openChats = []
 		self.curChat = ''
-
+		
+		self.prefs = Preferences.Preferences('preferences.cfg')
+		
 		# chat selection
 		self.fChatSelection = tk.Frame(self)
 		self.fChatSelection.grid(row = 0, column = 0, sticky = 'w')
@@ -22,6 +25,7 @@ class MainWindow(tk.Tk):
 		self.fMenue = tk.Frame(self)
 		self.fMenue.grid(row = 0, column = 1)
 		self.bContacts = tk.Button(self.fMenue, text = 'Contacts', command = self.displayContacts, width = 6)
+		self.bContacts.config(relief = tk.SUNKEN)
 		self.bContacts.pack(side = 'left')
 		self.bPreferences = tk.Button(self.fMenue, text = 'Prefs', command = self.displayPreferences, width = 6)
 		self.bPreferences.pack(side = 'left')
@@ -45,6 +49,19 @@ class MainWindow(tk.Tk):
 		self.tText.pack(side = 'left', fill = 'x', expand = True)
 		self.sText.config(command = self.tText.yview)
 
+		# preferences
+		self.fPreferences = tk.Frame(self)
+		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
+		self.sPreferences = tk.Scrollbar(self.fPreferences)
+		self.sPreferences.pack(side = 'right', fill='y')
+		self.luserPreferences = tk.Label(self.fPreferences, text = 'Username:')
+		self.luserPreferences.pack()
+		self.userNamePreferences = tk.Text(self.fPreferences, height = 1, width = 22)
+		self.userNamePreferences.insert(tk.END, self.prefs.username)
+		self.userNamePreferences.pack()
+		self.bOk = tk.Button(self.fPreferences, text = 'OK')
+		self.bOk.pack()
+	
 		# contact list
 		self.fContacts = tk.Frame(self)	
 		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
@@ -53,11 +70,6 @@ class MainWindow(tk.Tk):
 		self.lContacts = tk.Listbox(self.fContacts, yscrollcommand = self.sContacts.set)
 		self.lContacts.pack(side = 'left', fill = 'y')
 		self.sContacts.config(command = self.lContacts.yview)
-		
-		# preferences
-		self.fPreferences = tk.Frame(self)
-		self.lPreferences = tk.Label(self.fPreferences, text = 'Preferences')
-		self.lPreferences.pack()
 		
 		# chat buttons
 		self.fChatButtons = tk.Frame(self)
@@ -88,11 +100,17 @@ class MainWindow(tk.Tk):
 		''' hide contanct list and show preferences instead '''
 		self.fContacts.grid_forget()
 		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
+		self.bPreferences.config (relief = tk.SUNKEN)	
+		self.bContacts.config (relief = tk.RAISED)
+			
+
 
 	def displayContacts(self):
 		''' hide preferences and show contact list instead '''
 		self.fPreferences.grid_forget()
 		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
+		self.bContacts.config (relief = tk.SUNKEN)
+		self.bPreferences.config (relief = tk.RAISED)
 
 	def showMessage(self,message,user):
 		''' print message slightly formated in the chat window '''
@@ -160,6 +178,8 @@ class MainWindow(tk.Tk):
 			exec("self.activeButton = " + button)
 			exec(button + '.pack(side = \'left\')')
 			exec(cache + '= [\'\',\'\']')
+
+
 			
 			self.openChats.append(name)
 			self.curChat = name
@@ -224,6 +244,8 @@ class MainWindow(tk.Tk):
 	def textDown(self):
 		self.tChatWindow.see(tk.END)
 		self.tText.see(tk.END)
+
+	
 
 # open window if not imported
 if __name__ == '__main__':
