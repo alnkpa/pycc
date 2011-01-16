@@ -101,7 +101,7 @@ class PyCCBackendPluginManager(object):
 			
 	def searchPlugin(self, name):
 		for plu in self.plugins:
-			if plu[1].__name__ == name:
+			if type(plu[1]).__name__ == name:
 				return plu[1]
 		raise KeyError
 
