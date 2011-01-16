@@ -14,6 +14,8 @@ class MainWindow(tk.Tk):
 		# chat selection
 		self.fChatSelection = tk.Frame(self)
 		self.fChatSelection.grid(row = 0, column = 0, sticky = 'w')
+		# set current selected button to None
+		self.activeButton = None
 
 		# selection between contact list and preferences
 		self.fMenue = tk.Frame(self)
@@ -102,7 +104,10 @@ class MainWindow(tk.Tk):
 		''' event: doubleclick on contact list
 		save current chat in cache
 		create new button in fChatSelection, create new cache for chat
-		'''	
+		'''
+		# set currently activeButton's style back to standard
+		if(self.activeButton != None):
+			self.activeButton.config(relief = tk.RAISED)
 		# get contact's name from index
 		index = int(self.lContacts.curselection()[0])
 		name = self.lContacts.get(index)
@@ -120,6 +125,10 @@ class MainWindow(tk.Tk):
 			cache = 'self.c' + name
 			buttonFunc = lambda s = self, n = name: s.switchChat(n)
 			exec(button + '= tk.Button(self.fChatSelection, text = name, command = buttonFunc)')
+			# style button, mark as selected button
+			exec(button + '.config(relief = tk.SUNKEN)')
+			# set currently active button to pressed button
+			exec("self.activeButton = " + button)
 			exec(button + '.pack(side = \'left\')')
 			exec(cache + '= [\'\',\'\']')
 			
@@ -136,6 +145,9 @@ class MainWindow(tk.Tk):
 		self.readCache(name)
 		self.openChats.append(name)
 		self.curChat = name
+		self.activeButton.config(relief = tk.RAISED)
+		exec('self.activeButton = self.b' + name)
+		exec('self.b' + name + '.config(relief = tk.SUNKEN)')
 		
 	def cacheChat(self,name):
 		''' save content of tChatWindow and tText in cache list of name '''
