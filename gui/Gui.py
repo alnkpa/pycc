@@ -106,10 +106,6 @@ class MainWindow(tk.Tk):
 		self.tText.bind('<Shift-KeyRelease-Return>', self.newline)
 		self.protocol('WM_DELETE_WINDOW', self.windowClosing)
 		
-		#frontend = Frontend()
-		#list = self.frontend.sendRequest('getAccounts')	
-		#print(list)
-		
 		self.frontend = Frontend.Frontend()
 		started = self.frontend.startBackend()
 		if not started:
@@ -126,7 +122,6 @@ class MainWindow(tk.Tk):
 	def gotAccounts(self, package):
 		data = package.data.decode('utf-8')
 		data = data.split(',')
-		print(data)
 		accounts = []
 		for account in data:
 			h = account.split(':')
@@ -162,7 +157,8 @@ class MainWindow(tk.Tk):
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
-			self.frontend.sendRequest(('sendMessage', message.encode('UTF-8'), self.messageSent))
+			print(self.messageSent)
+			self.frontend.sendRequest(('sendMessage', (self.curChat + ':' + message).encode('utf-8'), self.messageSent))
 			self.tText.delete('1.0','end')
 				
 	def messageSent(self, package):
