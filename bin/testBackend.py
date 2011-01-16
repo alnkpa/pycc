@@ -21,14 +21,25 @@ try:
 		try:
 			data=con.parseInput()
 			if type(data) is backend.connection.PyCCPackage:
-				data.dump()
+				print('$$$${type}{handle}:{command}'.format(type=data.type,
+					handle=data.handle,command=data.command))
+				try:
+					print(data.data.decode('utf8'))
+				except UnicodeError:
+					print(data.data)
 
 		except KeyboardInterrupt:
 			command = input('PyCC: ')
+			if command.endswith('\\'):
+				data = input('>')
+				while data.endswith('\\'):
+					data += '\n' + input('>')
+			else:
+				data = None
 			if command == 'quit':
 				run = False
 			else:
-				con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command=command))
+				con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command=command,data=data))
 				if command == 'shutdown':
 					run = False
 
