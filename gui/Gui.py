@@ -57,7 +57,7 @@ class MainWindow(tk.Tk):
 		self.lPreferences.pack()
 		
 		# send button
-		self.bSend = tk.Button(self, text = 'Send', command = self.sendMessage, width = 10)
+		self.bSend = tk.Button(self, text = 'Send', command = self.sendMessage, width = 10, state = 'disabled')
 		self.bSend.grid(row = 3, column = 0, sticky = 'w')
 
 		# define expanding rows and columns
@@ -66,7 +66,8 @@ class MainWindow(tk.Tk):
 
 		# define events
 		self.lContacts.bind('<Double-ButtonPress-1>', self.startChat)
-		self.tText.bind('<KeyPress-Return>', self.sendMessage)
+		self.tText.bind('<KeyRelease-Return>', self.sendMessage)
+		self.tText.bind('<Shift-KeyRelease-Return>', self.newline)
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
@@ -111,6 +112,8 @@ class MainWindow(tk.Tk):
 			self.switchChat(name)
 		else:
 			self.title('PYCC - ' + name)
+			if self.openChats == []:
+				self.bSend.config(state = 'normal')
 			# cache current chat, clear windows
 			if self.curChat != '':
 				self.cacheChat(self.curChat)
@@ -140,7 +143,7 @@ class MainWindow(tk.Tk):
 	def cacheChat(self,name):
 		''' save content of tChatWindow and tText in cache list of name '''
 		cache = 'self.c' + name		
-		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip()')
+		exec(cache + '[0] = self.tChatWindow.get(\'1.0\',\'end\').strip() + \'\\n\\n\'')
 		exec(cache + '[1] = self.tText.get(\'1.0\',\'end\').strip()')
 
 	def readCache(self,name):
@@ -158,6 +161,10 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.delete('1.0','end')
 		self.tText.delete('1.0','end')
 		self.tChatWindow.config(state = 'disable')
+		
+	def newline(self, event):
+		line = self.tText.index('insert').split('.')[0]
+		self.tText.mark_set('insert',line + '.0')
 		
 
 # open window if not imported
