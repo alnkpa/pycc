@@ -88,7 +88,7 @@ class MainWindow(tk.Tk):
 		self.lContacts.bind('<Double-ButtonPress-1>', self.startChat)
 		self.tText.bind('<KeyRelease-Return>', self.sendMessage)
 		self.tText.bind('<Shift-KeyRelease-Return>', self.newline)
-
+		self.protocol('WM_DELETE_WINDOW', self.windowClosing)
 		
 		#frontend = Frontend()
 		#list = self.frontend.sendRequest('getAccounts')	
@@ -101,11 +101,16 @@ class MainWindow(tk.Tk):
 		else:
 			self.frontend.updateLoopTkinter(self)
 		
-		liste = self.frontend.sendRequest('getAccounts', self.gotAccounts)
+		self.frontend.sendRequest('getAccounts', self.gotAccounts)
+
+	def windowClosing(self):
+		self.frontend.closeBackend()
+		self.quit()
 
 	def gotAccounts(self, package):
 		data = package.data.decode('utf-8')
 		data = data.split(',')
+		print(data)
 		accounts = []
 		for account in data:
 			h = account.split(':')
