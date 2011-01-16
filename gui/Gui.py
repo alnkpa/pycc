@@ -56,12 +56,28 @@ class MainWindow(tk.Tk):
 		self.sPreferences.pack(side = 'right', fill='y')
 		self.luserPreferences = tk.Label(self.fPreferences, text = 'Username:')
 		self.luserPreferences.pack()
+		#Username 
 		self.userNamePreferences = tk.Text(self.fPreferences, height = 1, width = 22)
 		self.userNamePreferences.insert(tk.END, self.prefs.username)
 		self.userNamePreferences.pack()
 		self.bOk = tk.Button(self.fPreferences, text = 'OK')
 		self.bOk.pack()
-	
+
+		#Textcolor
+		v = tk.IntVar()
+		self.lColor =tk.Label(self.fPreferences, text = 'Textcolor:', height = 2)
+		self.lColor.pack()
+		self.rbRed = tk.Radiobutton(self.fPreferences, text = 'Red',variable = v,value = 1)
+		self.rbRed.pack( anchor = tk.W )
+		self.rbBlue = tk.Radiobutton(self.fPreferences, text = 'Blue',variable = v, value = 2)
+		self.rbBlue.pack( anchor = tk.W )
+		self.rbGreen = tk.Radiobutton(self.fPreferences, text = 'Green',variable = v, value = 3)
+		self.rbGreen.pack( anchor = tk.W )
+		self.rbBlack = tk.Radiobutton(self.fPreferences, text = 'Black',variable = v, value = 4)
+		self.rbBlack.pack( anchor = tk.W )
+		
+		
+ 
 		# contact list
 		self.fContacts = tk.Frame(self)	
 		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
@@ -118,6 +134,7 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.insert('end','~ {0}:\n{1}\n\n'.format(user,message))
 		self.tChatWindow.config(state = 'disabled')
 		self.textDown()
+		
 		
 		
 	def sendMessage(self, *event):
@@ -246,6 +263,9 @@ class MainWindow(tk.Tk):
 		self.tChatWindow.see(tk.END)
 		self.tText.see(tk.END)
 		print ('textdown')
+
+	def changeColor(self):
+		pass
 
 	
 
