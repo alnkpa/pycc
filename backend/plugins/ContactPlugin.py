@@ -42,20 +42,21 @@ class ContactPlugin(Plugin.Plugin):
 		for contact in self.contacts:
 			if contact[0]==accountHash:
 				package.data = contact[1]				
-				sendcommand(package) 	#fixthat	
+				package.connection.sendResponse(package)	
 
 	def getAccountHash(self,accountName):
 		'''Get a specific accontHash'''
 		for contact in contacts:
 			if contact[1]==accountName:
 				package.data = contact[0]				
-				sendcommand(package)	#fixthat
+				package.connection.sendResponse(package)	#fixthat
 
 	def returnAccountHash(self,accountName):
 		'''Get a specific accontHash'''
 		for contact in contacts:
 			if contact[1]==accountName:
-				return contact[0]
+				package.data = contact[0]
+				package.connection.sendResponse(package)
 
 	def getAccounts(self,package):
 		'''Get all of the accounts, comma seperated accountHash:accountName pairs are returned'''		
