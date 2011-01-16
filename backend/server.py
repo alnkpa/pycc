@@ -93,7 +93,7 @@ class PyCCBackendServer(object):
 
 	def handleCommand(self,clientSocket,conElement):
 		if conElement.command.strip() == 'shutdown':
-			self.read = False
+			self._read = False
 		self._plugins.handleCommand(conElement)
 
 	def status(self):
