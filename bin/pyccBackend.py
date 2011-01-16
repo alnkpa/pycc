@@ -17,6 +17,7 @@ import backend.config
 import backend.server
 import importlib
 import backend.plugins.Plugin
+import socket
 
 config=backend.config.PyCCBackendConfig()
 server=backend.server.PyCCBackendServer(config.getNodeID())
@@ -50,7 +51,7 @@ try:
 			try:
 				server.listen(network,port)
 				break
-			except:
+			except socket.error:
 				port+=1
 		else:
 			server.listen(network,port)
