@@ -62,3 +62,16 @@ It is called after all commands are handled.
 The Plugin will not be used afterwards.
 '''
 		pass
+
+class PyCCPluginToBackendInterface(object):
+	
+	def __init__(self,manger,server):
+		self._manager = manager
+		self._server = server
+
+	def getNodeIdForUser(self):
+		pass
+
+	def getNodeConnections(self,nodeId):
+		self._server.getConnectionList(nodeId)
+
