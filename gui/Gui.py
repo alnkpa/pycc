@@ -51,30 +51,30 @@ class MainWindow(tk.Tk):
 
 		# preferences
 		self.fPreferences = tk.Frame(self)
-		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 		self.sPreferences = tk.Scrollbar(self.fPreferences)
 		self.sPreferences.pack(side = 'right', fill='y')
 		self.luserPreferences = tk.Label(self.fPreferences, text = 'Username:')
 		self.luserPreferences.pack()
-		#Username 
-		self.userNamePreferences = tk.Text(self.fPreferences, height = 1, width = 22)
-		self.userNamePreferences.insert(tk.END, self.prefs.username)
-		self.userNamePreferences.pack()
-		self.bOk = tk.Button(self.fPreferences, text = 'OK')
-		self.bOk.pack()
-
-		#Textcolor
-		v = tk.IntVar()
-		self.lColor =tk.Label(self.fPreferences, text = 'Textcolor:', height = 2)
-		self.lColor.pack()
-		self.rbRed = tk.Radiobutton(self.fPreferences, text = 'Red',variable = v,value = 1)
-		self.rbRed.pack( anchor = tk.W )
-		self.rbBlue = tk.Radiobutton(self.fPreferences, text = 'Blue',variable = v, value = 2)
-		self.rbBlue.pack( anchor = tk.W )
-		self.rbGreen = tk.Radiobutton(self.fPreferences, text = 'Green',variable = v, value = 3)
-		self.rbGreen.pack( anchor = tk.W )
-		self.rbBlack = tk.Radiobutton(self.fPreferences, text = 'Black',variable = v, value = 4)
-		self.rbBlack.pack( anchor = tk.W )
+		#username 
+		self.tUserName = tk.Text(self.fPreferences, height = 1, width = 15)
+		self.tUserName.insert('end', self.prefs.username)
+		self.tUserName.pack(padx = 3)
+		#textcolor
+		v = tk.StringVar()
+		self.fColors = tk.Frame(self.fPreferences)
+		self.fColors.pack()
+		self.lColors = tk.Label(self.fColors, text = '\nTextcolor:', height = 2)
+		self.lColors.pack()
+		self.rbBlack = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'black', indicatoron = 0, activebackground = '#000000',selectcolor = '#000000', bg = '#444444')		
+		self.rbBlack.pack(side = 'left')
+		self.rbRed = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'red', indicatoron = 0, activebackground = '#FF0000',selectcolor = '#FF0000', bg = '#DD4444')
+		self.rbRed.pack(side = 'left')
+		self.rbBlue = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'blue', indicatoron = 0, activebackground = '#0000FF',selectcolor = '#0000FF', bg = '#4444CC')
+		self.rbBlue.pack(side = 'left')
+		self.rbGreen = tk.Radiobutton(self.fColors, width = 3, variable = v, value = 'green', indicatoron = 0, activebackground = '#00FF00',selectcolor = '#00FF00', bg = '#44DD44')
+		self.rbGreen.pack(side = 'left')
+		self.bSave = tk.Button(self.fPreferences, text = 'Save', width = 8)
+		self.bSave.pack(pady = 5)
  
 		# contact list
 		self.fContacts = tk.Frame(self)	
@@ -95,8 +95,9 @@ class MainWindow(tk.Tk):
 		self.bCloseChat.pack(side = 'left')
 
 		# define expanding rows and columns
-		self.rowconfigure(1 , weight = 1)
-		self.columnconfigure(0 , weight = 1)
+		self.rowconfigure(1, weight = 1)
+		self.columnconfigure(0, weight = 1)
+		self.columnconfigure(1, minsize = 177)
 
 		# define events
 		self.lContacts.bind('<Double-ButtonPress-1>', self.startChat)
