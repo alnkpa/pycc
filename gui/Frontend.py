@@ -140,8 +140,8 @@ return wether the connection is alive
 				continue
 			if package is False:
 				return False
-			if packet.type == packet.TYPE_REQUEST:
-				self._handleCommand(packet)
+			if package.type == package.TYPE_REQUEST:
+				self._handleCommand(package)
 				continue
 			callback= self.callbacks.get(package.handle, None)
 			if callback is None:

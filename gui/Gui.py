@@ -75,8 +75,6 @@ class MainWindow(tk.Tk):
 		self.rbGreen.pack( anchor = tk.W )
 		self.rbBlack = tk.Radiobutton(self.fPreferences, text = 'Black',variable = v, value = 4)
 		self.rbBlack.pack( anchor = tk.W )
-		
-		
  
 		# contact list
 		self.fContacts = tk.Frame(self)	
@@ -113,6 +111,7 @@ class MainWindow(tk.Tk):
 		else:
 			self.frontend.updateLoopTkinter(self)
 		
+		self.frontend.addCallback('newMessage', self.gotNewMessage)	
 		self.frontend.sendRequest('getAccounts', self.gotAccounts)
 
 	def windowClosing(self):
@@ -126,7 +125,12 @@ class MainWindow(tk.Tk):
 		for account in data:
 			h = account.split(':')
 			accounts.append(h[1])
-		self.loadContacts(accounts)	
+		self.loadContacts(accounts)
+	
+	def gotNewMessage(self, package):
+		'''Called when new message'''
+		#currently not implemented
+		pass	
 
 	def displayPreferences(self):
 		''' hide contanct list and show preferences instead '''
@@ -153,7 +157,6 @@ class MainWindow(tk.Tk):
 
 	def sendMessage(self, *event):
 		''' delete message from input window and show it in the chat window '''
-		
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
