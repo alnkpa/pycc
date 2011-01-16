@@ -25,6 +25,7 @@ class MainWindow(tk.Tk):
 		self.fMenue = tk.Frame(self)
 		self.fMenue.grid(row = 0, column = 1)
 		self.bContacts = tk.Button(self.fMenue, text = 'Contacts', command = self.displayContacts, width = 6)
+		self.bContacts.config(relief = tk.SUNKEN)
 		self.bContacts.pack(side = 'left')
 		self.bPreferences = tk.Button(self.fMenue, text = 'Prefs', command = self.displayPreferences, width = 6)
 		self.bPreferences.pack(side = 'left')
@@ -48,15 +49,6 @@ class MainWindow(tk.Tk):
 		self.tText.pack(side = 'left', fill = 'x', expand = True)
 		self.sText.config(command = self.tText.yview)
 
-		# contact list
-		self.fContacts = tk.Frame(self)	
-		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
-		self.sContacts = tk.Scrollbar(self.fContacts)
-		self.sContacts.pack(side = 'right', fill = 'y')	
-		self.lContacts = tk.Listbox(self.fContacts, yscrollcommand = self.sContacts.set)
-		self.lContacts.pack(side = 'left', fill = 'y')
-		self.sContacts.config(command = self.lContacts.yview)
-		
 		# preferences
 		self.fPreferences = tk.Frame(self)
 		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
@@ -69,8 +61,15 @@ class MainWindow(tk.Tk):
 		self.userNamePreferences.pack()
 		self.bOk = tk.Button(self.fPreferences, text = 'OK')
 		self.bOk.pack()
-
-		
+	
+		# contact list
+		self.fContacts = tk.Frame(self)	
+		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
+		self.sContacts = tk.Scrollbar(self.fContacts)
+		self.sContacts.pack(side = 'right', fill = 'y')	
+		self.lContacts = tk.Listbox(self.fContacts, yscrollcommand = self.sContacts.set)
+		self.lContacts.pack(side = 'left', fill = 'y')
+		self.sContacts.config(command = self.lContacts.yview)
 		
 		# chat buttons
 		self.fChatButtons = tk.Frame(self)
