@@ -67,6 +67,9 @@ class MainWindow(tk.Tk):
 		self.userNamePreferences = tk.Text(self.fPreferences, height = 1, width = 22)
 		self.userNamePreferences.insert(tk.END, self.prefs.username)
 		self.userNamePreferences.pack()
+		self.bOk = tk.Button(self.fPreferences, text = 'OK')
+		self.bOk.pack()
+
 		
 		
 		# chat buttons
