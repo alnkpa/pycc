@@ -46,6 +46,7 @@ class PyCCConnection(object):
 		    mode: client or server (e.g. helpful for protocol init)"""
 		self._socket = socket
 		self._nodeid = nodeid
+		self.partnerNodeID = None
 		self._mode = mode
 		self._status = 'new'
 		self._boundary = None
@@ -123,6 +124,7 @@ class PyCCConnection(object):
 			tmp=newData.decode('utf8').split("|")
 			if len(tmp)!=3:
 				raise ProtocolException(3,'unknown init')
+			self.partnerNodeID=tmp[2].strip()
 			if tmp[1].find(',')>-1:
 				self.sendstr('OK. {0}\n'.format(tmp[1].split(',')[-1]))
 			self._status = 'open'
@@ -148,7 +150,12 @@ class PyCCConnection(object):
 				#FixMe:
 				# Idea: self._buffer = self._buffer[pos+len(self._boundary)+1:]
 				# Problem: ending \r\n
-				self._buffer = bytearray()
+				self._buffer = self._buffer[pos+len(self._boundary)+1:]
+				if self._buffer.startswith(bytearray(b'\r')):
+						self._buffer = self._buffer[1:]
+				if self._buffer.startswith(bytearray(b'\n')):
+						self._buffer = self._buffer[1:]
+				#self._buffer = bytearray()
 				self._boundary = None
 				return self._element
 
