@@ -8,10 +8,12 @@ class MainWindow(tk.Tk):
 		''' creating and packing elements of the GUI '''
 		tk.Tk.__init__(self)
 		self.title("PYCC")
+		self.openChats = []
+		self.curChat = ''
 
 		# chat selection
 		self.fChatSelection = tk.Frame(self)
-		self.fChatSelection.grid(row = 0, column = 0)
+		self.fChatSelection.grid(row = 0, column = 0, sticky = 'w')
 
 		# selection between contact list and preferences
 		self.fMenue = tk.Frame(self)
@@ -26,7 +28,7 @@ class MainWindow(tk.Tk):
 		self.fChatWindow.grid(row = 1, column = 0, sticky = 'nswe')
 		self.sChatWindow = tk.Scrollbar(self.fChatWindow)
 		self.sChatWindow.pack(side = 'right', fill = 'y')
-		# read-only; switch state back to 'normal' to insert text	
+		# read-only; switch back to state = 'normal' to insert text	
 		self.tChatWindow = tk.Text(self.fChatWindow, yscrollcommand = self.sChatWindow.set, height = 20, state = 'disabled')
 		self.tChatWindow.pack(side = 'left', fill = 'both', expand = True)
 		self.sChatWindow.config(command = self.tChatWindow.yview)
@@ -62,27 +64,82 @@ class MainWindow(tk.Tk):
 		self.rowconfigure(1 , weight = 1)
 		self.columnconfigure(0 , weight = 1)
 
+		self.lContacts.bind("<Double-ButtonPress-1>", self.startChat)
+
 	def displayPreferences(self):
+		''' hide contanct list and show preferences instead '''
 		self.fContacts.grid_forget()
 		self.fPreferences.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 
 	def displayContacts(self):
+		''' hide preferences and show contact list instead '''
 		self.fPreferences.grid_forget()
 		self.fContacts.grid(row = 1, column = 1, rowspan = 3, sticky = 'nswe')
 
 	def showMessage(self,message,user):
+		''' print message slightly formated in the chat window '''
 		self.tChatWindow.config(state = 'normal')
 		self.tChatWindow.insert('end','~ {0}:\n{1}\n\n'.format(user,message))
 		self.tChatWindow.config(state = 'disabled')
 
 	def sendMessage(self):
+		''' delete message from input window and show it in the chat window '''
 		if self.tText.get('1.0','end').strip() != '':
 			message = self.tText.get('1.0','end').strip()
 			self.showMessage(message,'Me')
 			self.tText.delete('1.0','end')
 
+	def loadContacts(self, contacts):
+		''' fill contact list or add contact
+		parameter contacts has to be an iterable instance of nicknames
+		'''
+		for contact in contacts:
+			self.lContacts.insert('end',contact)
+
+	def startChat(self, event):		
+		index = int(self.lContacts.curselection()[0])
+		name = self.lContacts.get(index)
+		if name in self.openChats:
+			self.switchChat(name)
+		else:
+			self.title('PYCC - ' + name)
+			if self.curChat != '':
+				self.cacheChat(self.curChat)
+			button = 'self.b' + name
+			cache = 'self.c' + name
+			buttonFunc = lambda s = self, n = name: s.switchChat(n)
+			exec(button + '= tk.Button(self.fChatSelection, text = name, command = buttonFunc)')
+			exec(button + '.pack(side = \'left\')')
+			exec(cache + '= [name,\'\',\'\']')
+			self.readCache(name)
+			self.openChats.append(name)
+			self.curChat = name
+
+	def switchChat(self,name):
+		self.title('PYCC - ' + name)
+		self.cacheChat(self.curChat)
+		self.readCache(name)
+		self.openChats.append(name)
+		self.curChat = name
+		
+	def cacheChat(self,name):
+		cache = 'self.c' + name		
+		exec(cache + '[0] = name')
+		exec(cache + '[1] = self.tChatWindow.get(\'1.0\',\'end\').strip()')
+		exec(cache + '[2] = self.tText.get(\'1.0\',\'end\').strip()')
+
+	def readCache(self,name):
+		self.tChatWindow.config(state = 'normal')
+		self.tChatWindow.delete('1.0','end')
+		self.tText.delete('1.0','end')
+		cache = 'self.c' + name	
+		exec('self.tChatWindow.insert(\'end\', ' +cache + '[1])')
+		exec('self.tText.insert(\'end\', ' + cache + '[2])')
+		self.tChatWindow.config(state = 'disable')
+
 
 # open window if not imported
 if __name__ == '__main__':
 	window = MainWindow()
+	window.loadContacts(['Eric', 'Stanley', 'Kyle', 'Kenny'])
 	window.mainloop()
