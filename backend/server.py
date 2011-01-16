@@ -119,6 +119,9 @@ class PyCCBackendServer(object):
 			# fix: open connection
 			pass
 
+	def getNodeId(self):
+		return self._nodeID
+
 	def addBroadcastAddress(self,address):
 		udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		udpSocket.connect((self.address, self._serverPort))
