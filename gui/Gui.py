@@ -174,7 +174,6 @@ class MainWindow(tk.Tk):
 			self.cacheChat(self.curChat)
 		self.clearChat()
 		self.readCache(name)
-		self.openChats.append(name)
 		self.curChat = name
 		self.activeButton.config(relief = tk.RAISED)
 		exec('self.activeButton = self.b' + name)
@@ -189,10 +188,9 @@ class MainWindow(tk.Tk):
 		i = self.openChats.index(self.curChat)
 		self.openChats.pop(i)
 		self.curChat = ''
-		if i > 0:
+		if len(self.openChats) != 0:
 			self.switchChat(self.openChats[i-1])
-		else:
-			self.openChats = []			
+		else:			
 			self.clearChat()			
 			self.tText.config(state = 'disabled')
 			self.bSend.config(state = 'disabled')
@@ -232,5 +230,5 @@ class MainWindow(tk.Tk):
 # open window if not imported
 if __name__ == '__main__':
 	window = MainWindow()
-	window.loadContacts(['Eric', 'Stanley', 'Kyle', 'Kenny'])
+	window.loadContacts(['Eric', 'Stanley', 'Kyle', 'Kenny', 'Martin', 'Leo', 'Dennis', 'Kevin', 'George', 'Maria', 'Achmed'])
 	window.mainloop()
