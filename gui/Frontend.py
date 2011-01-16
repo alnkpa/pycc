@@ -49,7 +49,7 @@ defaultSocketArguments
 		self.pipe= None
 
 	def getNodeId(self):
-		return b'frontend'
+		return 'frontend'
 
 	def connect(self, addr, *args):
 		'''connect to the server on a given address
@@ -60,9 +60,7 @@ the optimal arguments are for the socket class
 		sock= socket.socket(*(args + self.defaultSocketArguments[len(args):]))
 		sock.connect(addr)
 		self.connection= connection.PyCCConnection(sock, self.getNodeId())
-		time.sleep(1)
 		self.update(responses= 1)
-		time.sleep(1)
 		self.socket= sock
 		sock.setblocking(0)
 
@@ -79,19 +77,23 @@ its class is of connection.PyCCPackage .
 
 
 '''
-		if type(package) is bytes:
+		if type(package) is str:
 			package= connection.PyCCPackage(command= package)
 		elif type(package) is tuple:
 			# command, data
-			package= connection.PyCCPackage(command= package[0], \
-											data= package[1])
+			if type(package[0]) is not str:
+				raise ValueError('first element of tuple must be of type str')
+			if len(package) == 1:
+				package= connection.PyCCPackage(command= package[0])
+			else:
+				if type(package[1]) is not bytes:
+					raise ValueError('second element of tuple must be of type bytes')
+				package= connection.PyCCPackage(command= package[0], data= package[1])
 		elif not isinstance(package, connection.PyCCPackage):
 			raise ValueError('package shoult be of type bytes, \
 tuple of two bytes or connection.PyCCPackage')
 		package.handle= self.connection.newRequest()
-		print('---------3--------')
 		self.connection.sendRequest(package)
-		print('---------4--------')
 		if callback is not None:
 			if hasattr(callback, '__call__'):
 				self.callbacks[package.handle]= callback
@@ -110,17 +112,13 @@ return wether the connection is alive
 		while responses:
 			responses-= 1
 			try:
-				print('-----------update-----------')
 				package= self.connection.parseInput()
 			except socket.error:
-				print('-------------------break-----------------')
 				break
-			print('#################package:', package)
 			if package is None:
 				continue
 			if package is False:
 				return False
-			print ('update:package', package)
 			callback= self.callbacks.get(package.handle, None)
 			if callback is None:
 				continue
@@ -128,8 +126,8 @@ return wether the connection is alive
 				self.callbacks.pop(package.handle)
 		return True
 		
-	def startServer(self, command= None, timeout= 1):
-		'''startServer() starts a server if no server is reacheable
+	def startBackend(self, command= None, timeout= 1):
+		'''startBackend() starts a server if no server is reacheable
 
 return value is True if a server could be started
 otherwise False
@@ -150,16 +148,13 @@ timeout are seconds
 		else:
 			return True
 		t= time.time() + timeout
-		print(1)
 		for i in range(self.serverStartupTries):
 			if time.time() > t:
 				break
 			c= command[:]
 			c.extend(['-port', str(port), '-searchPort', '0'])
 			self.pipe= subprocess.Popen(c)
-			print('poll:', self.pipe.poll())
 			while self.pipe.poll() is None:
-				print ('try connect')
 				try:
 					self.connect(('localhost', port))
 					break
@@ -171,7 +166,6 @@ timeout are seconds
 					break
 			if self.socket is None:
 				# not connected
-				print('not connected')
 				port+= 1
 				try:
 					self.pipe.terminate()
@@ -182,14 +176,16 @@ timeout are seconds
 			else:
 				break
 		return self.pipe is not None
+	startServer= startBackend
 
-	def closeServer(self):
+	def closeBackend(self):
 		'''close the server started by this object'''
 		if self.pipe is not None:
 			try:
 				self.pipe.terminate()
 			except OSError:
 				pass
+	closeServer= closeBackend
 		
 
 	def updateLoopTkinter(self, widget, timeout= 1):
@@ -201,27 +197,50 @@ timeout are seconds
 
 
 if __name__ == '__main__':
-	_print= print
-	print= lambda *args:_print('#######################', *args)
+	import types
+	if type(print) is not types.LambdaType:
+		_print= print
+		print= lambda *args:_print('#######################', *args)
+	# get a frontend object
 	f= Frontend()
-	s= f.startServer()
-	print ('started:', s)
+ 	# start a backend server and connect to it
+	s= f.startBackend()
 	if s:
-		pass
-	def g (p):
-		print ('g:', p)
+		print ('The backend server could be started.')
+	else:
+		print ('Failed to start the backend server. exiting')
+		exit(1)
+
+	def respondToEcho(p):
+		print ('echo responded')
+		print ('\tcommand:', p.command)
+		print ('\ttype:', p.type)
+		if p.type == p.TYPE_REQUEST:
+			print ('\t--- das war eine Anfrage! sollte ncht sein, da plugins antworten.')
+		elif p.type == p.TYPE_RESPONSE:
+			print ('\t--- echo antwortet!!')
+			print ('\t--- wir verarbeiten die daten...')
+			print ('\tdata:', p.data)
+		elif p.type == p.TYPE_ERROR:
+			print ('\tein fehler ist aufgetreten.. in data steht der code dafuer')
+			print ('\tdata:', p.data)
+		else:
+			# never happens
+			pass
+		print ('\techo bearbeitet')
 	print('sent request echo - awaiting response')
-	f.sendRequest((b'echo', b''), g)
+	f.sendRequest('echo', respondToEcho)
 	print('-------------1----------------')
 	time.sleep(1)
 	print('-------------2----------------')
-	f.sendRequest((b'echo', b''), g)
-	print('response?')
 	f.update()
+	print('-------------3----------------')
+	f.sendRequest(('echo', b'testdaten sind bytes'), respondToEcho)
+	print('-------------4----------------')
+	time.sleep(0.5)
+	f.update()
+	print('-------------5----------------')
 	while not input():
-##		try:
-##			print(f.connection.parseInput())
-##		except socket.error:
-##			print('error')
+		# update blockiert nicht
 		f.update()
 	f.closeServer()
