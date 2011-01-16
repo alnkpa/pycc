@@ -84,8 +84,8 @@ class PyCCBackendServer(object):
 	def status(self):
 		message=''
 		for connection in self.clients:
-				info=connection.getpeername()
-				message+='{0}:{1} -- nodeID:{2}\n'.format(info[0],info[1],connection.partnerNodeID)
+				message+=str(connection)
+				message+='\n'
 		return message
 
 	def openConnection(self,host,port=62533):

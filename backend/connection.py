@@ -113,13 +113,18 @@ class PyCCConnection(object):
 		if not newData:
 			return False
 		if self._status == 'new':
-			if not newData.startswith(bytearray(b'PyCC')):
+			try:
+				tmp=newData.decode('utf8').split("|")
+				if len(tmp)!=3 or tmp[0]!='PyCC':
+					raise ProtocolException(6,'wrong protocol (header)')
+				self.partnerNodeID=tmp[2].strip()
+				self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
+				self._status='open'
+				newData=newData[newData.find(bytearray(b'\n'))+1:]
+				if len(newData)==0:
+					return None
+			except UnicodeError:
 				raise ProtocolException(6,'wrong protocol (header)')
-			self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
-			self._status='open'
-			newData=newData[newData.find(bytearray(b'\n'))+1:]
-			if len(newData)==0:
-				return None
 		elif self._status == 'init':
 			tmp=newData.decode('utf8').split("|")
 			if len(tmp)!=3:
@@ -231,3 +236,7 @@ socket.SHUT_RDWR = 2
 socket.SHUT_WR = 1
 '''
 		return self._socket.close(*args)
+
+	def __str__(self):
+		info=self.getpeername()
+		return '{0}:{1}@{2} -- nodeID:{3}'.format(info[0],info[1],self._status,self.partnerNodeID)
