@@ -1,4 +1,4 @@
 *.pyc
 *~
 .port
-logs
+config/server.cfg

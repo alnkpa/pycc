@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# fixing working directory
+import os
+import os.path
+os.chdir(os.path.realpath(os.path.join(os.path.split(__file__)[0],'..')))
+# fixing include path
 import sys
 sys.path.append('.')
 sys.path.append('./backend')
@@ -6,20 +11,15 @@ sys.path.append('./backend/plugins')
 sys.path.append('..')
 sys.path.append('../backend')
 sys.path.append('../backend/plugins')
+
 import backend
 import backend.config
 import backend.server
 import importlib
 import backend.plugins.Plugin
-import hashlib
 
 config=backend.config.PyCCBackendConfig()
-backendID=config.getstr('network','id')
-
-if backendID is None:
-	backendID=hashlib.sha1("|".join(sys.path).encode('utf8'))
-
-server=backend.server.PyCCBackendServer(backendID)
+server=backend.server.PyCCBackendServer(config.getNodeID())
 
 # default value
 port = config.getint('network','port')
@@ -41,7 +41,7 @@ while argIndex < len(sys.argv):
 		argIndex+= 1
 	if arg == '-port':
 		# string
-		searchPort= int(sys.argv[argIndex])
+		port= int(sys.argv[argIndex])
 		argIndex+= 1
 
 # starting server

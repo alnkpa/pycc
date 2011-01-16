@@ -18,7 +18,6 @@ def getPluginClasses():
     # directory of this file
     dirPath = os.path.dirname(__file__) 
     if not dirPath:
-        print('dirpath:', dirPath)
         dirPath= '.'
     if package:
         # might be nonlocal import, from another Plugin

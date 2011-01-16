@@ -9,7 +9,7 @@ import backend.connection
 class PyCCBackendServer(object):
 
 	def __init__(self,id):
-		self.serverID=id
+		self.nodeID=id
 		self.server = None
 		self.serverAddr = None
 		self.serverPort = None
@@ -56,7 +56,7 @@ class PyCCBackendServer(object):
 					self.clientConnectionClosed(sock)
 
 	def clientConnectionOpened(self,clientSocket):
-		pyccConnection=backend.connection.PyCCConnection(clientSocket,mode='server')
+		pyccConnection=backend.connection.PyCCConnection(clientSocket,self.nodeID,mode='server')
 		self.clients.append(pyccConnection)
 		self.plugins.clientConnectionOpened(clientSocket)
 		ip = pyccConnection.getpeername()[0]
