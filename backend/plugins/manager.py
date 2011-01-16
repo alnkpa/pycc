@@ -9,12 +9,16 @@ import os
 PLUGIN_BASE_MODULE_NAME = 'Plugin'
 PLUGIN_BASE_CLASS_NAME = 'Plugin'
 
+CONTINUE= 'continue'
+
 def getPluginClasses():
     '''load and return a list of all Plugin derivates in the local modules'''
     # the module name   "package.package. ... .name"    so only show the packages
     package = '.'.join(__name__.split('.')[:-1])
     # directory of this file
     dirPath = os.path.dirname(__file__) 
+    if not dirPath:
+        dirPath= '.'
     if package:
         # might be nonlocal import, from another Plugin
         # 'package.package.'
@@ -34,10 +38,9 @@ def getPluginClasses():
         # list of the Plugin classes - classes derived from Plugin
         pluginClasses= []
         for pModuleFile in fileList:
-            print (pModuleFile)
             # split .py or .pyc from file name
             modName, ext= os.path.splitext(pModuleFile)
-            if modName.startswith('_'):
+            if modName.startswith('_') or ext not in(".py",".pyw"):
                 # do not load _modules
                 continue
             try:
@@ -84,7 +87,7 @@ class PyCCBackendPluginManager(object):
 		PClasses=getPluginClasses()
 		for pluginClass in PClasses:
 			p=pluginClass(self)
-			p.registerInBackend()
+			p.registerInManager()
 
 	def registerPlugin(self, name, plugin, priority):
 		self.plugins.append((name, plugin, priority))
@@ -93,6 +96,8 @@ class PyCCBackendPluginManager(object):
 	def startup(self):
 		''' method is called directly after the server has started up'''
 		self.loadPlugins()
+		for plu in self.plugins:
+			plu[1].startup()
 
 	def shutdown(self):
 		''' method is called directly before the server will stuting down'''
@@ -109,19 +114,16 @@ class PyCCBackendPluginManager(object):
 		    client: client connection (PyCCConnection)'''
 		pass
 
-	def handleCommand(self, client, comHandle, command, data):
+	def handleCommand(self, conPackage):
 		''' method is called for handle a command request
-		    clientSocket: client connection (PyCCConnection)
-		    comHandle: identifier of the corresponding request
-		    command: command name
-		    data: message of command'''
-		regPlugin, cmd = command.split(":")
+		    conPackage: connection element (PyCCPackage)'''
 		for plugin in self.plugins:
-			if plugin[0]==regPlugin:
-				break
-	plugin[1].recvCommand(client, comHandle, cmd, data)
-	
-__all__ = ['getPluginClasses', 'PyCCBackendPluginManager']
+			if conPackage.command.startswith(plugin[0]):
+				v= plugin[1].recvCommand(conPackage)
+				if v != CONTINUE:
+					break
+
+__all__ = ['getPluginClasses', 'PyCCBackendPluginManager', 'CONTINUE']
 
 if __name__ == '__main__':
     # test module

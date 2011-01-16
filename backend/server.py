@@ -8,7 +8,8 @@ import backend.connection
 
 class PyCCBackendServer(object):
 
-	def __init__(self):
+	def __init__(self,id):
+		self.nodeID=id
 		self.server = None
 		self.serverAddr = None
 		self.serverPort = None
@@ -17,16 +18,12 @@ class PyCCBackendServer(object):
 		self.plugins = backend.plugins.PyCCBackendPluginManager(self)
 
 	def listen(self, addr, port):
+		print(addr, port)
 		self.serverAddr = addr
 		self.serverPort = port
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		# searching first free port:
-		while True:
-			try:
-				self.server.bind((self.serverAddr, self.serverPort))
-				break
-			except:
-				self.serverPort+=1
+		self.server.bind((self.serverAddr, self.serverPort))
 		with open('.port','w') as portfile:
 			portfile.write(str(self.serverPort))
 		self.server.listen(1)
@@ -50,33 +47,59 @@ class PyCCBackendServer(object):
 						self.clientConnectionOpened(client)
 					else:
 						parsed=sock.parseInput()
-						if not parsed :
+						if parsed is False :
 							self.clientConnectionClosed(sock)
-						elif parsed!=True:
-							(messageType,comHandle,messageData)=parsed
-							if messageType == 'A': #Request
-								self.handleCommand(sock,comHandle,messageData)
-				except backend.connection.ProtocolException as e:
+						elif type(parsed) is backend.connection.PyCCPackage:
+							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
+								self.handleCommand(sock,parsed)
+				except (backend.connection.ProtocolException,socket.error) as e:
 					print("{0}: {1}".format(type(e),e))
 					self.clientConnectionClosed(sock)
 
 	def clientConnectionOpened(self,clientSocket):
-		pyccConnection=backend.connection.PyCCConnection(clientSocket,mode='server')
+		pyccConnection=backend.connection.PyCCConnection(clientSocket,self.nodeID,mode='server')
 		self.clients.append(pyccConnection)
 		self.plugins.clientConnectionOpened(clientSocket)
 		ip = pyccConnection.getpeername()[0]
 		print("+++ connection from %s" % ip)
 
 	def clientConnectionClosed(self,clientSocket):
-		ip = clientSocket.getpeername()[0]
-		print("+++ connection to %s closed" % ip)
-		self.plugins.clientConnectionClosed(clientSocket)
-		clientSocket.close()
-		self.clients.remove(clientSocket)
+		try:
+			ip = clientSocket.getpeername()[0]
+			print("+++ connection to %s closed" % ip)
+			self.plugins.clientConnectionClosed(clientSocket)
+			clientSocket.close()
+		except socket.error:
+			pass
+		finally:
+			self.clients.remove(clientSocket)
 
-	def handleCommand(self,clientSocket,comHandle,message):
+	def handleCommand(self,clientSocket,conElement):
 		ip = clientSocket.getpeername()[0]
-		print("[%s] %s" % (ip, message))
-		if message.strip() == 'shutdown':
+		print("[%s] %s" % (ip, conElement))
+		if conElement.command.strip() == 'shutdown':
 			self.read = False
-		self.plugins.handleCommand(clientSocket,comHandle,'',message) # FixMe
+		self.plugins.handleCommand(conElement)
+
+	def status(self):
+		message=''
+		for connection in self.clients:
+				info=connection.getpeername()
+				message+='{0}:{1} -- nodeID:{2}\n'.format(info[0],info[1],connection.partnerNodeID)
+		return message
+
+	def openConnection(self,host,port=62533):
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.connect((host, port))
+		con=backend.connection.PyCCConnection(sock,self.nodeID)
+		self.clients.append(con)
+
+	def getConnectionList(self,node):
+		count=0
+		for con in self.clients:
+				if con.partnerNodeID==node:
+						count+=1
+						yield con
+		if count==0:
+			# fix: open connection
+			pass
