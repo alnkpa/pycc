@@ -15,16 +15,34 @@ try:
 	socket.connect(('127.0.0.1', port))
 	con=backend.connection.PyCCConnection(socket,'testBackend')
 
-	for i in range(4):
-		#con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command='echo'))
-		input=con.parseInput()
-		if type(input) is backend.connection.PyCCPackage:
-			input.dump()
-		else:
-			print(input)
-		if i < 3:
-			time.sleep(1)
-			con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command='echo'))
+	run=True
+
+	while run:
+		try:
+			data=con.parseInput()
+			if type(data) is backend.connection.PyCCPackage:
+				print('$$$${type}{handle}:{command}'.format(type=data.type,
+					handle=data.handle,command=data.command))
+				try:
+					print(data.data.decode('utf8'))
+				except UnicodeError:
+					print(data.data)
+
+		except KeyboardInterrupt:
+			command = input('PyCC: ')
+			if command.endswith('\\'):
+				data = input('>')
+				while data.endswith('\\'):
+					data += '\n' + input('>')
+			else:
+				data = None
+			if command == 'quit':
+				run = False
+			else:
+				con.sendRequest(backend.connection.PyCCPackage(handle=con.newRequest(),command=command,data=data))
+				if command == 'shutdown':
+					run = False
+
 finally:
 	try:
 		con.close()
