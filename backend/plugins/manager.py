@@ -96,7 +96,7 @@ class PyCCBackendPluginManager(object):
 				p.init()
 				p.registerInManager()
 			except Exception as e:
-				print('Could not load plugin {0}:\n{1}: {2}'.format(pluginClass.__name__,type(e),str(e)),file=sys.stderr)
+				print('Could not load plugin {0}:\n{1}: {2}'.format(pluginClass.__name__,type(e).__name__,str(e)),file=sys.stderr)
 
 	def registerPlugin(self, name, plugin, priority):
 		self.plugins.append((name, plugin, priority))
