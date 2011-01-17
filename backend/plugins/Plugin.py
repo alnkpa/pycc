@@ -20,6 +20,7 @@ PluginClass.priority
 	def __init__(self, manager, backend, config):
 		'''all Plugins are initialized with a manager class'''
 		self.backend = backend
+		self.manager = manager
 		self.PyCCManager = manager
 		self.config = config
 
