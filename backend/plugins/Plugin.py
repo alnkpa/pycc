@@ -71,6 +71,72 @@ The Plugin will not be used afterwards.
 '''
 		pass
 
+class EasyPlugin(Plugin):
+	'''This class is a advanced Plugin class for easier plugins
+
+	Every command_* will used as a registered commit
+	Every plugin will be derived from this class
+
+'''
+
+	#any plugin will be bound to a PyCCManager at its initialisation
+	def __init__(self, manager, backend, config):
+		'''all Plugins are initialized with a manager class'''
+		Plugin.__init__(self, manager, backend, config)
+		self._simplePlugin_commands = {}
+
+	#tell the register that you want be registered with it
+	def registerInManager(self):
+		'''register this Plugin in the manager
+
+this method should not be overwritten'''
+		if type(self) == EasyPlugin: # don't register yourself
+			return
+
+		for element in dir(self):
+			if not element.startswith('command'):
+				continue
+			command, name = element.split('_',1)
+			command = list(command[7:]) # get attributes
+			self.manager.registerPlugin(name, self, self.priority)
+			self._simplePlugin_commands[name] = (element, command)
+
+
+	#Any command send from the PyCCManager will be here
+	def recvCommand(self, package):
+		'''all commands for this plugin are passed to this function
+
+con is of type backend.connection.PyCCPackage
+'''
+		for command in self._simplePlugin_commands:
+			if package.command.startswith(command):
+				call, flags =self._simplePlugin_commands[command]
+				if 'U' in flags: # data must be unicode
+					try:
+						package.data = package.data.decode('utf8')
+					except UnicodeError:
+						package.data = 'data have to be utf8'
+						package.connection.sendError(package)
+				if 'A' in flags: # parse attributes
+					callargs = [package]
+					args = package.command.split(' ')
+					package.command = args[0]
+					callargs = [package] + args[1:]
+					try:
+						result=getattr(self,call)(*callargs)
+					except TypeError: # wrong arguments
+						package.data = 'wrong arguments'
+						package.connection.sendError(package)
+				else:
+					result=getattr(self,call)(package)
+				if 'R' in flags:
+					if type(result) is str or type(result) is bytearray:
+						package.data = result
+						package.connection.sendResponse(package)
+
+
+
+
 
 class PyCCPluginToBackendInterface(object):
 	
