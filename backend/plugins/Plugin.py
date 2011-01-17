@@ -10,6 +10,8 @@ PluginClass.priority
 	is the priority relative to other plugins.
 	PluginClass.recvCommand is called first for Plugins with 
 	higher priority.
+
+	Warning: please do not overwrite __init__ use init instead
 '''
 	#names under which the plugins wants to be registered
 	registeredCommands=None
@@ -26,6 +28,7 @@ PluginClass.priority
 
 
 	def init(self):
+		''' plugin inizialisation'''
 		pass
 
 
@@ -75,9 +78,27 @@ The Plugin will not be used afterwards.
 class EasyPlugin(Plugin):
 	'''This class is a advanced Plugin class for easier plugins
 
-	Every command_* will used as a registered commit
-	Every plugin will be derived from this class
+	Every command<Flags>_* will used as a registered command;
+		first argument is the package
+	supported flags:
+		A: parsed command attributes
+			command data of package is split into command + args
+			(spaces separated)
+			new package.command is the 0. argument
+			other args are used as python args
+			if the argument count is wrong a error is send to
+			the client.
+		R: return data are send as response
+			if the method return a string or binary data
+			a response package with this data is send.
+			(other attributes were not changed)
+		U: data must be utf8
+			the data have to be utf8 string, no binary data
+			possible.
+			the data is automatically converted to utf8
+			a convert error is send as error to the client
 
+	Warning: our recvCommand must not be replaced!
 '''
 
 	#any plugin will be bound to a PyCCManager at its initialisation
@@ -88,14 +109,14 @@ class EasyPlugin(Plugin):
 
 	#tell the register that you want be registered with it
 	def registerInManager(self):
-		'''register this Plugin in the manager
+		'''register command in the manager
 
 this method should not be overwritten'''
 		if type(self) == EasyPlugin: # don't register yourself
 			return
 
-		for element in dir(self):
-			if not element.startswith('command'):
+		for element in dir(self): # search methods
+			if not element.startswith('command'): # command-method?
 				continue
 			command, name = element.split('_',1)
 			command = list(command[7:]) # get attributes
@@ -140,17 +161,25 @@ con is of type backend.connection.PyCCPackage
 
 
 class PyCCPluginToBackendInterface(object):
+	''' interface between plugin and the backend (e.g. server)
+		plugin could access this class with self.backend'''
 	
 	def __init__(self,manager,server):
+		''' init interface'''
 		self._manager = manager
 		self._server = server
 
 	def getNodeIdForUser(self):
+		'''planed'''
 		pass
 
 	def getNodeConnections(self,nodeId):
+		''' iterate over all connection to a special node
+			if there is no connection to this node, a new connection
+			is automatically establish.'''
 		for connection in self._server.getConnectionList(nodeId):
 			yield connection
 
 	def getNodeId(self):
+		''' return node id of currrent backend'''
 		return self._server.getNodeId()
