@@ -34,6 +34,7 @@ class Broadcast(Plugin.Plugin):
     port = 62533
     registeredCommands= ['broadcastState']
     def init(self):
+        self.server = self.manager.server
         self.baddrs= []
         self.addBroadcastAdresses(self.loadBroadcasts())
 
@@ -168,14 +169,14 @@ class Broadcast(Plugin.Plugin):
 
     def recvCommand(self, pack):
         '''recv a command'''
-        if pack.startswith('broadcastState'):
+        if pack.command.startswith('broadcastState'):
             # broadcast the state of this node
             self.sendBroadcast(pack)
 
     def sendBroadcast(self, packet):
         '''send a packet to all broadcast adresses'''
-        for conn in self.PyCCManager.server.getConnectionList("broadcast"):
-            conn.send(packet)
+        for conn in self.backend.getNodeConnections(":broadcast"):
+            conn.sendRequest(packet)
                 
     def addBroadcastAdresses(self, l):
         '''add the broadcastadresses we do not know
@@ -190,7 +191,7 @@ and add them also as connection'''
                 
     def addServerBroadcastConnection(self, addr):
         '''add a server broadcast connection to the given address'''
-        self.PyCCManager.server.addBroadcastConnection(addr)
+        self.server.addBroadcastAddress(addr)
 
 
 if __name__ == '__main__':
