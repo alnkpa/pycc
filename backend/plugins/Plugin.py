@@ -25,7 +25,7 @@ PluginClass.priority
 
 
 	def init(self):
-                '''this is called once after the plugin is initialized'''
+		'''this is called once after the plugin is initialized'''
 		pass
 
 
