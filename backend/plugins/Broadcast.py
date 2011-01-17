@@ -67,19 +67,19 @@ class Broadcast(Plugin.Plugin):
     @staticmethod
     def escape(b):
         '''escape the bytes newline'''
-        return b.replace('\\', '\\\\').replace('\n', '\\n')
+        return b.translate({b'\\': b'\\\\', b'\n': b'\\n'})
 
     @staticmethod
     def unescape(b):
         '''revert the escapeing of the newline'''
-        return b.replace('\\n', '\n').replace('\\\\', '\\')
+        return b.translate({b'\\n': b'\n', b'\\\\': b'\\'})
 
     def broadcastState(self, packet):
         '''broadcast the state of this node'''
         user= self.manager.searchPlugin('User')
         name=  user['name']
-        node=  packet.connection.server.getNodeId().encode('UTF-8')
-        state= user.get('state', b'')
+        node=  self.PyCCManager.server.getNodeId()
+        state= user.get('state', '')
         #
         packet.command= 'recvBroadcast'
         packet.type= packet.TYPE_REQUEST
@@ -150,4 +150,25 @@ and add them also as connection'''
                 
     def addServerBroadcastConnection(self, addr):
         '''add a server broadcast connection to the given address'''
-        self.PyCCManager.server.addBroadcastConnection(a)
+        self.PyCCManager.server.addBroadcastConnection(addr)
+
+
+if __name__ == '__main__':
+    class X:
+        def __init__(self, name):
+            self.name= name
+        def __getattribute__(self, attr):
+            name= object.__getattribute__(self, 'name')
+            print('getting', name, '.', attr)
+            return X(name + '.' + attr)
+        def __call__(self, *args, **kw):
+            name= object.__getattribute__(self, 'name')
+            print('calling', name, args, kw)
+
+    p= Broadcast(X('c'))
+    p.init()
+    b= b'123456789\\n\n\\\n\\n\n\\n\n\n\n\n\\rbhsdrge\n\\nn\n\dn '
+    print(b)
+    print(p.escape(b))
+    print(p.unescape(p.escape(b)))
+    assert p.unescape(p.escape(b)) == b

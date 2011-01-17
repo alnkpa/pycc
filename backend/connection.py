@@ -238,7 +238,8 @@ class PyCCConnection(object):
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		package.type=PyCCPackage.TYPE_RESPONSE
 		self.sendPackage(package)
-	def sendErrors(self, package):
+
+	def sendError(self, package):
 		'''send error to connection partner
 		package: data to send (not all data uses e.g. type) [PyCCPackage]'''
 		package.type=PyCCPackage.TYPE_ERROR

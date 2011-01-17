@@ -110,8 +110,12 @@ class PyCCBackendPluginManager(object):
 				p.init()
 				p.registerInManager()
 			except Exception as e:
+<<<<<<< HEAD
 				traceback.print_exception(*sys.exc_info())
 				print('Could not load plugin {0}:\n{1}: {2}'.format(pluginClass.__name__,type(e),str(e)),file=sys.stderr)
+=======
+				print('Could not load plugin {0}:\n{1}: {2}'.format(pluginClass.__name__,type(e).__name__,str(e)),file=sys.stderr)
+>>>>>>> cf863f06f344b30d3b08f4dc25aca6c8fa1ba5e1
 
 	def registerPlugin(self, command, plugin, priority):
 		'''register a plugin under a given command with a priority
