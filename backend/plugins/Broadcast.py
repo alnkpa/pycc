@@ -44,14 +44,27 @@ class Broadcast(Plugin.Plugin):
         with open('.broadcasts', 'a+') as f:
             return self.str2broadcasts(f.read())
 
-    @staticmethod
-    def str2broadcasts(s):
+    def str2broadcasts(self, s):
         '''read a list of lists of broadcastadresses from a file'''
         r= []
         for l in s.split('\n'):
             addrs= l.split(';')
-            r.extend(addrs)
+            for addr in addrs:
+                if self.isValidAddress(addr):
+                    r.append(addr)
         return r
+
+    @staticmethod
+    def isValidAddress(addr):
+        '''=> bool wether the given address is a valid'''
+        if not addr:
+            return False
+        for b in addr:
+            if b in '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_:':
+                pass
+            else:
+                return False
+        return True
 
     def saveBroadcasts(self, b):
         '''save all broadcast adresses to a file'''
@@ -67,19 +80,46 @@ class Broadcast(Plugin.Plugin):
     @staticmethod
     def escape(b):
         '''escape the bytes newline'''
-        return b.translate({b'\\': b'\\\\', b'\n': b'\\n'})
+        if type(b) is str:
+            return b.translate({b'\\': b'\\\\', b'\n': b'\\n'})
+        b2= b''
+        for b in b:
+            if b == b'\n':
+                b2+= b'\\n'
+            elif b == '\\':
+                b2+= b'\\\\'
+            else:
+                b2+= bytes((b,))
+        return b2
 
     @staticmethod
     def unescape(b):
         '''revert the escapeing of the newline'''
-        return b.translate({b'\\n': b'\n', b'\\\\': b'\\'})
+        if type(b) is str:
+            return b.translate({b'\\n': b'\n', b'\\\\': b'\\'})
+        b2= last= b''
+        for b in b:
+            if b == b'\\':
+                if last == b'\\':
+                    last= b''
+                    b2+= b'\\'
+            elif b == 'n':
+                if last == b'\\':
+                    b2+= b'\n'
+            else:
+                b2+= bytes((b,))
+            last = b
+        return b2
+            
 
     def broadcastState(self, packet):
         '''broadcast the state of this node'''
-        user= self.manager.searchPlugin('User')
-        name=  user['name']
+        user= getattr(self, 'user', None)
+        if user is None:
+            user= self.manager.searchPlugin('User')
+        name=  user.get('name', b'')
         node=  self.PyCCManager.server.getNodeId()
-        state= user.get('state', '')
+        state= user.get('state', b'')
         #
         packet.command= 'recvBroadcast'
         packet.type= packet.TYPE_REQUEST
@@ -165,7 +205,7 @@ if __name__ == '__main__':
             name= object.__getattribute__(self, 'name')
             print('calling', name, args, kw)
 
-    p= Broadcast(X('c'))
+    p= Broadcast(X('a'),X('b'),X('c'))
     p.init()
     b= b'123456789\\n\n\\\n\\n\n\\n\n\n\n\n\\rbhsdrge\n\\nn\n\dn '
     print(b)
