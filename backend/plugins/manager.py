@@ -4,6 +4,8 @@
 '''
 import sys
 import os
+import config
+import Plugin
 
 #PLUGIN_BASE_MODULE_NAME is the Plugin module of which all Plugins inherit
 PLUGIN_BASE_MODULE_NAME = 'Plugin'
@@ -78,16 +80,23 @@ class PyCCBackendPluginManager(object):
 	''' class for manage the backend plugins
 		it connects the backend with the plugins'''
 
-	def __init__(self,server):
+	def __init__(self, server, config):
 		self.server=server
+		self.config=config
 		self.plugins = [] # (command, plugin, priority)
 
 	def loadPlugins(self):
 		self.plugins = []
 		PClasses=getPluginClasses()
 		for pluginClass in PClasses:
-			p=pluginClass(self)
-			p.registerInManager()
+			try:
+				p=pluginClass(self,
+					Plugin.PyCCPluginToBackendInterface(self,self.server),
+					config.PyCCPluginConfig(self.config,pluginClass.__name__))
+				p.init()
+				p.registerInManager()
+			except Exception as e:
+				print('Could not load plugin {0}:\n{1}: {2}'.format(pluginClass.__name__,type(e),str(e)),file=sys.stderr)
 
 	def registerPlugin(self, name, plugin, priority):
 		self.plugins.append((name, plugin, priority))

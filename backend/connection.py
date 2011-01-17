@@ -46,7 +46,8 @@ class PyCCConnection(object):
 		    mode: client or server (e.g. helpful for protocol init)"""
 		self._socket = socket
 		self._nodeid = nodeid
-		self.partnerNodeID = None
+		self.partnerNodeId = None
+		self._address = None
 		self._mode = mode
 		self._status = status
 		self._boundary = None
@@ -58,6 +59,7 @@ class PyCCConnection(object):
 			self._nextComHandle = 1
 		self._buffer=bytearray()
 		self._callbacks={}
+		self._heloUdpPorts = []
 
 	def _parseMessageStart(self):
 		self._element = PyCCPackage(connection=self)
@@ -110,7 +112,7 @@ class PyCCConnection(object):
 		      PyCCPackage: new package
 		    """
 
-		newData=self._socket.recv(8192)
+		newData, self._address = self._socket.recvfrom(8192)
 		if not newData:
 			return False
 		if self._status == 'new':
@@ -118,7 +120,7 @@ class PyCCConnection(object):
 				tmp=newData.decode('utf8').split("|")
 				if len(tmp)!=3 or tmp[0]!='PyCC':
 					raise ProtocolException(6,'wrong protocol (header)')
-				self.partnerNodeID=tmp[2].strip()
+				self.partnerNodeId=tmp[2].strip()
 				if self._mode != 'udp':
 					self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
 				self._status='open'
@@ -131,21 +133,25 @@ class PyCCConnection(object):
 			tmp=newData.decode('utf8').split("|")
 			if len(tmp)!=3:
 				raise ProtocolException(3,'unknown init')
-			self.partnerNodeID=tmp[2].strip()
+			self.partnerNodeId=tmp[2].strip()
 			if tmp[1].find(',')>-1:
 				self.sendstr('OK. {0}\n'.format(tmp[1].split(',')[-1]))
 			self._status = 'open'
 			newData=newData[newData.find(bytearray(b'\n'))+1:]
 			if len(newData)==0:
 				return None
-		elif self._status == 'udp':
-			print("new udp")
-			print(newData.decode('utf8'))
-			tmp=newData.decode('utf8').split("|")
+		elif self._status == 'udp' and self._address[1] not in self._heloUdpPorts:
+			lineEndPos=newData.find(bytearray(b'\n'))
+			if lineEndPos>-1:
+				tmp=newData[0:lineEndPos].decode('utf8').split("|")
+			else:
+				tmp=newData.decode('utf8').split("|")
 			if len(tmp)!=3 or tmp[0]!='PyCC':
 				raise ProtocolException(6,'wrong protocol (header)')
-			self.partnerNodeID=tmp[2].strip()
-			newData=newData[newData.find(bytearray(b'\n'))+1:]
+			else:
+				self._heloUdpPorts.append(self._address[1])
+			self.partnerNodeId=tmp[2].strip()
+			newData=newData[lineEndPos+1:]
 			if len(newData)==0:
 				return None
 
@@ -209,6 +215,8 @@ class PyCCConnection(object):
 			.format(type=package.type,comHandle=package.handle,
 			endBoundary=boundary,command=package.command).encode('utf8')
 		message+=data
+		if self._status == 'udp':
+			self.sendstr('PyCC|{version}|{node}\n'.format(version=PyCCConnection.version,node = self._nodeid))
 		self.send(message)
 
 	def sendRequest(self, package, callback = None, callbackExtraArg = None):
@@ -258,8 +266,8 @@ class PyCCConnection(object):
 		return self._socket.fileno()
 
 	def getpeername(self):
-		if self._status == 'udp':
-			return ('udp','')
+		if self._status == 'udp': # and self._mode == 'client':
+			return self._address
 		else:
 			return self._socket.getpeername()
 
@@ -275,4 +283,6 @@ socket.SHUT_WR = 1
 
 	def __str__(self):
 		info=self.getpeername()
-		return '{0}:{1}@{2} -- nodeID:{3}'.format(info[0],info[1],self._status,self.partnerNodeID)
+		if info is None or len(info) != 2:
+			info = ('', '')
+		return '{0}:{1}@{2} -- nodeId:{3}'.format(info[0],info[1],self._status,self.partnerNodeId)
