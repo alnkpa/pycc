@@ -20,7 +20,7 @@ import backend.plugins.Plugin
 import socket
 
 config=backend.config.PyCCBackendConfig()
-server=backend.server.PyCCBackendServer(config.getNodeID())
+server=backend.server.PyCCBackendServer(config)
 
 # default value
 port = config.getint('network','port')

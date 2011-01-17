@@ -14,11 +14,19 @@ PluginClass.priority
 	#names under which the plugins wants to be registered
 	registeredCommands=None
 	priority=0
-	
+
+
 	#any plugin will be bound to a PyCCManager at its initialisation
-	def __init__(self, PyCCManager):
+	def __init__(self, manager, backend, config):
 		'''all Plugins are initialized with a manager class'''
-		self.PyCCManager = PyCCManager
+		self.backend = backend
+		self.PyCCManager = manager
+		self.config = config
+
+
+	def init(self):
+		pass
+
 
 	#This method sends a command to the PyCCManager
 	def sendCommand(self, command, data):
@@ -63,9 +71,10 @@ The Plugin will not be used afterwards.
 '''
 		pass
 
+
 class PyCCPluginToBackendInterface(object):
 	
-	def __init__(self,manger,server):
+	def __init__(self,manager,server):
 		self._manager = manager
 		self._server = server
 
@@ -73,5 +82,8 @@ class PyCCPluginToBackendInterface(object):
 		pass
 
 	def getNodeConnections(self,nodeId):
-		self._server.getConnectionList(nodeId)
+		for connection in self._server.getConnectionList(nodeId):
+			yield connection
 
+	def getNodeId(self):
+		return self._server.getNodeId()

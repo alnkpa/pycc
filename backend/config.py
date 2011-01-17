@@ -21,7 +21,7 @@ class PyCCBackendConfig():
 	def getint(self,section,value,default=None):
 			return self.config.getint(section,value)
 
-	def getNodeID(self):
+	def getNodeId(self):
 		try:
 			return self.getstr('network','id')
 		except configparser.NoOptionError:

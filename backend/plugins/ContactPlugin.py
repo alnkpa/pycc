@@ -2,10 +2,10 @@ import Plugin
 
 class ContactPlugin(Plugin.Plugin):
 	''' Manages all the Contacts '''
-	registeredCommands = ["addAccount","deleteAccount","getAccountName","getAccountHash","getAccounts"]	
-	def __init__(self,PyCCManager):
+	registeredCommands = ["addAccount","deleteAccount","getAccountName","getAccountHash","getAccounts"]
+
+	def init(self):
 		'''initially get all'''
-		Plugin.Plugin.__init__(self,PyCCManager)
 		self.contacts = []
 		f = open(".contacts")
 		append = self.contacts.append
