@@ -31,3 +31,15 @@ class PyCCBackendConfig():
 			with open(PyCCBackendConfig.configfile,'w') as f:
 				self.config.write(f)
 			return backendID
+
+class PyCCPluginConfig():
+
+	def __init__(self,backendConfig, pluginName):
+		self._config = backendConfig
+		self._pluginName = pluginName
+
+	def getstr(self,value,section='',default=None):
+		return self._config.getstr('Plugin:{0}{1}'.format(self._pluginName,section),value)
+
+	def getint(self,section,value,default=None):
+		return self._config.getint('Plugin:{0}{1}'.format(self._pluginName,section),value)
