@@ -4,7 +4,7 @@ class LogPlugin(Plugin.Plugin):
 	registeredCommands=""
 	priority=5
 
-	def startup(self):
+	def init(self):
 	    self.file=open('logs/backend.log','a')
 
 	def shutdown(self):

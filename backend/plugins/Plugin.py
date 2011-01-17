@@ -25,6 +25,7 @@ PluginClass.priority
 
 
 	def init(self):
+                '''this is called once after the plugin is initialized'''
 		pass
 
 
@@ -61,6 +62,8 @@ this method should not be overwritten'''
 			raise ValueError('invalid value for attribute registeredCommands {0}'.format(comm))
 
 	def startup(self):
+		'''this is called for each command registered
+when the manager starts up'''
 		pass
 
 	def shutdown(self):
