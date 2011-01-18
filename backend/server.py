@@ -5,6 +5,8 @@ import socket
 import select
 import backend.plugins
 import backend.connection
+import sys
+import traceback
 
 class PyCCBackendServer(object):
 
@@ -72,7 +74,8 @@ class PyCCBackendServer(object):
 							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
 								self.handleCommand(sock,parsed)
 				except (backend.connection.ProtocolException,socket.error) as e:
-					print("{0}: {1}".format(type(e),e))
+					print("{0}: {1}".format(type(e).__name__,e),file=sys.stderr)
+					traceback.print_tb(e.__traceback__)
 					self.clientConnectionClosed(sock)
 
 	def clientConnectionOpened(self,clientSocket):

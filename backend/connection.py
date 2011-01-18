@@ -72,7 +72,7 @@ class PyCCConnection(object):
 		elif self._buffer[0]==bytearray(b'E')[0]:
 			self._element.type=PyCCPackage.TYPE_ERROR
 		else:
-			raise ProtocolException(1,'unknown message type')
+			raise ProtocolException(1,'unknown message type\n{0}'.format(self._buffer))
 		# Extract ComHandle:
 		posEndHandle=1
 		while posEndHandle<len(self._buffer) and self._buffer[posEndHandle]!=bytearray(b':')[0]:
