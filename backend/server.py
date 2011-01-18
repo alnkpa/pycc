@@ -86,18 +86,15 @@ class PyCCBackendServer(object):
 		print("+++ connection from %s" % ip)
 
 	def clientConnectionClosed(self,clientSocket):
-		try:
-			ip = clientSocket.getpeername()[0]
-			print("+++ connection to %s closed" % ip)
-			self._plugins.clientConnectionClosed(clientSocket)
-			clientSocket.close()
-		except socket.error:
-			pass
-		finally:
+		if clientSocket in self._connections['clients']:
 			try:
-				self._connections['clients'].remove(clientSocket)
-			except ValueError:
-				self._connections['broadcast'].remove(clientSocket)
+				ip = clientSocket.getpeername()[0]
+				print("+++ connection to %s closed" % ip)
+				self._plugins.clientConnectionClosed(clientSocket)
+				clientSocket.close()
+			except socket.error:
+				pass
+			self._connections['clients'].remove(clientSocket)
 
 	def handleCommand(self,clientSocket,conElement):
 		if conElement.command.strip() == 'shutdown':
@@ -128,20 +125,19 @@ class PyCCBackendServer(object):
 		return con
 
 	def getConnectionList(self, node):
-		count=0
+		count = 0
 		if node == ':broadcast':
 			for con in self._connections['broadcasts']:
-				print('yield broadcast con')
 				yield con
-				cound = -1
+				count = -1
 		else:
 			for con in self._connections['clients']:
-				if con.partnerNodeId==node:
-						count+=1
+				if con.partnerNodeId == node:
+						count += 1
 						yield con
-		if count==0:
+		if count == 0:
 			if node in self._nodeAddresses:
-				con=self.openConnection(self._nodeAddresses[node])
+				con = self.openConnection(self._nodeAddresses[node])
 				if issubclass(type(con),backend.connection.PyCCConnection):
 					yield con
 				else:

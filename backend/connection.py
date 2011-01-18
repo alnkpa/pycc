@@ -64,6 +64,10 @@ class PyCCConnection(object):
 	def _parseMessageStart(self):
 		self._element = PyCCPackage(connection=self)
 		self._boundary = None
+		if self._status == 'udp' and self._buffer.startswith(b'PyCC|'): # Receive Header in UDP-Connection
+			self._buffer = self._buffer[self._buffer.find(bytearray(b'\n'))+1:]
+			if len(self._buffer) == 0:
+				return None
 		# Extract MessageType:
 		if self._buffer[0]==bytearray(b'A')[0]:
 			self._element.type=PyCCPackage.TYPE_REQUEST

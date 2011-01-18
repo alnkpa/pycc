@@ -175,6 +175,10 @@ class PyCCPluginToBackendInterface(object):
 		'''planed'''
 		pass
 
+	def openConnection(self, host, port=62533):
+		'''connect to a specifical host (server or other chat client backend)'''
+		self._server.openConnection(host,port)
+
 	def getNodeConnections(self,nodeId):
 		''' iterate over all connection to a special node
 			if there is no connection to this node, a new connection
