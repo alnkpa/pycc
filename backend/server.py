@@ -5,34 +5,42 @@ import socket
 import select
 import backend.plugins
 import backend.connection
+import sys
+import traceback
 
 class PyCCBackendServer(object):
+	''' main backend control class
+	    this class manage to connection and the whole network communication
+	    the plugin management is done by the PyCCBackendPluginManager'''
 
 	def __init__(self, config):
-		self._config = config
-		self._nodeId = config.getNodeId()
-		self._server = None
-		self._serverAddr = None
-		self._serverPort = None
-		self._connections = {
-			'tcpListen': [],
-			'udpListen': [],
-			'clients': [],
-			'broadcasts': []
+		self._config = config # config backend class [PyCCBackendConfig]
+		self._nodeId = config.getNodeId() # determine node id
+		self._serverAddr = None # server bind address
+		self._serverPort = None # server port
+		self._connections = { # open network connections
+			'tcpListen': [], # tcp listening
+			'udpListen': [], # udp listening
+			'clients': [], # connections to/from other clients/backends
+			'broadcasts': [] # udp broadcast address
 			}
-		self._nodeAddresses = {}
-		self._read = True
+		self._nodeAddresses = {} # map from node to network address
+		self._read = True # continue network reading
+		# start network plugin manager:
 		self._plugins = backend.plugins.PyCCBackendPluginManager(self,config)
 
 	def listen(self, addr, port):
+		''' call for binding server to network interfaces
+		    addr: bind address [udp+tcp]
+		    port: bind port [udp+tcp]'''
 		self._serverAddr = addr
 		self._serverPort = port
 		# setting up tcp socket
 		tcpSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		tcpSocket.bind((self._serverAddr, self._serverPort))
 		tcpSocket.listen(1)
-		# setting up upd socket
 		self._connections['tcpListen'].append(tcpSocket)
+		# setting up upd socket
 		udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -43,58 +51,70 @@ class PyCCBackendServer(object):
 		with open('.port','w') as portfile:
 			portfile.write(str(self._serverPort))
 		print(self._serverAddr, self._serverPort)
+		# startup plugins
 		self._plugins.startup()
 
 	def shutdown(self):
+		''' server shutdown; close network connection'''
+		# give plugins the possibility the close network communication:
 		self._plugins.shutdown()
+		# close network connections
 		for socktype in self._connections:
 			for client in self._connections[socktype]:
 				client.close()
 
 	def listenforever(self):
-		while self._read:
+		''' handle network communication endless'''
+		while self._read: # should i read more?
+			# wait for new data to read:
 			toReadConnections, toWriteConnections, priorityConnectsions = select.select(
 				self._connections['tcpListen'] + self._connections['udpListen']
 				+ self._connections['broadcasts'] + self._connections['clients'], [], [])
 
-			for sock in toReadConnections:
+			for sock in toReadConnections: # handle all sockets with new data
 				try:
 					if sock in self._connections['tcpListen']: # new connection
 						client, addr = sock.accept()
+						# setting up client connection
 						self.clientConnectionOpened(client)
 					else:
-						parsed=sock.parseInput()
-						if parsed is False :
+						# read new input:
+						parsed = sock.parseInput()
+						if parsed is False: # could not read
 							self.clientConnectionClosed(sock)
 						elif type(parsed) is backend.connection.PyCCPackage:
+							# inform about new data
 							ip = sock.getpeername()[0]
 							print("[%s] %s" % (ip, parsed))
+							# handle package via plugin manager
 							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
 								self.handleCommand(sock,parsed)
-				except (backend.connection.ProtocolException,socket.error) as e:
-					print("{0}: {1}".format(type(e),e))
+				except (backend.connection.ProtocolException, socket.error) as e:
+					print("{0}: {1}".format(type(e).__name__,e),file=sys.stderr)
+					traceback.print_tb(e.__traceback__)
 					self.clientConnectionClosed(sock)
 
-	def clientConnectionOpened(self,clientSocket):
+	def clientConnectionOpened(self, clientSocket):
+		''' prepare a new connection from a client (frontend or other backend)'''
+		# starting pycc communication about this network socket
 		pyccConnection=backend.connection.PyCCConnection(clientSocket,self._nodeId,mode='server')
-		self._connections['clients'].append(pyccConnection)
-		self._plugins.clientConnectionOpened(clientSocket)
+		self._connections['clients'].append(pyccConnection) # save connection
+		self._plugins.clientConnectionOpened(clientSocket) # inform package about new connection
+		# print information
 		ip = pyccConnection.getpeername()[0]
 		print("+++ connection from %s" % ip)
 
 	def clientConnectionClosed(self,clientSocket):
-		try:
-			ip = clientSocket.getpeername()[0]
-			print("+++ connection to %s closed" % ip)
-			self._plugins.clientConnectionClosed(clientSocket)
-			clientSocket.close()
-		except socket.error:
-			pass
-		finally:
+		''' close connection to client'''
+		if clientSocket in self._connections['clients']: # client connection?
 			try:
-				self._connections['clients'].remove(clientSocket)
-			except ValueError:
-				self._connections['broadcast'].remove(clientSocket)
+				ip = clientSocket.getpeername()[0]
+				print("+++ connection to %s closed" % ip)
+				self._plugins.clientConnectionClosed(clientSocket)
+				clientSocket.close()
+			except socket.error: # error whil closing: ignore
+				pass
+			self._connections['clients'].remove(clientSocket)
 
 	def handleCommand(self,clientSocket,conElement):
 		if conElement.command.strip() == 'shutdown':
@@ -102,52 +122,60 @@ class PyCCBackendServer(object):
 		self._plugins.handleCommand(conElement)
 
 	def status(self):
-		message='Clients:\n'
+		# return message about internal state of class and connections'';
+		message = 'Clients:\n'
 		for connection in self._connections['clients']:
-				message+=str(connection)
-				message+='\n'
-		message+='NodeAddresses:\n'
+				message += str(connection)
+				message += '\n'
+		message += 'NodeAddresses:\n'
 		for node in self._nodeAddresses:
-				message+='{0}: {1}\n'.format(node,self._nodeAddresses[node])
-		message+='BroadcastAdrresses:\n'
+				message += '{0}: {1}\n'.format(node,self._nodeAddresses[node])
+		message += 'BroadcastAdrresses:\n'
 		for connection in self._connections['broadcasts']:
-				message+=str(connection)
-				message+='\n'
+				message += str(connection)
+				message += '\n'
 		return message
 
 	def openConnection(self,host,port=True):
-		if port == True:
+		''' open connection to other backend'''
+		if port == True: # use default port?
 			port = self._serverPort
+		# new socket:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect((host, port))
-		con=backend.connection.PyCCConnection(sock,self._nodeId)
+		# build pycc connection over socket
+		con = backend.connection.PyCCConnection(sock,self._nodeId)
 		self._connections['clients'].append(con)
 		return con
 
 	def getConnectionList(self, node):
-		count=0
+		''' return a list with all connection to a specific node
+		    :broadcast for broadcast connections
+		    :frontend for connection from frontends'''
+		count = 0
 		if node == ':broadcast':
 			for con in self._connections['broadcasts']:
-				print('yield broadcast con')
 				yield con
-				cound = -1
+				count = -1
 		else:
 			for con in self._connections['clients']:
-				if con.partnerNodeId==node:
-						count+=1
+				if con.partnerNodeId == node:
+						count += 1
 						yield con
-		if count==0:
-			if node in self._nodeAddresses:
-				con=self.openConnection(self._nodeAddresses[node])
+		if count == 0: # have to open connection
+			if node in self._nodeAddresses: # network address of node known?
+				con = self.openConnection(self._nodeAddresses[node])
 				if issubclass(type(con),backend.connection.PyCCConnection):
 					yield con
 				else:
 					print("ERROR: could not connect to node {0}".format(node))
 
 	def getNodeId(self):
+		''' return node id of this backend'''
 		return self._nodeId
 
 	def addBroadcastAddress(self,address):
+		''' add new broadcast address'''
 		udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -155,4 +183,5 @@ class PyCCBackendServer(object):
 		self._connections['broadcasts'].append(backend.connection.PyCCConnection(udpSocket,self._nodeId,status='udp'))
 
 	def nodeAnnounce(self, package):
+		''' add new relation between network address and node'''
 		self._nodeAddresses[package.connection.partnerNodeId] = package.connection._address[0]

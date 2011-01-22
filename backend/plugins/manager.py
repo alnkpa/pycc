@@ -4,8 +4,21 @@
 '''
 import sys
 import os
-import config
+import traceback
+
 import Plugin
+
+try:
+	import config
+except ImportError:
+	sys.path.append('..')
+	try:
+		import config
+	finally:
+		try:
+			sys.path.remove('..')
+		except ValueError:
+			pass
 
 #PLUGIN_BASE_MODULE_NAME is the Plugin module of which all Plugins inherit
 PLUGIN_BASE_MODULE_NAME = 'Plugin'
@@ -86,6 +99,7 @@ class PyCCBackendPluginManager(object):
 		self.plugins = [] # (command, plugin, priority)
 
 	def loadPlugins(self):
+		'''this method loads all Plugins from the directory'''
 		self.plugins = []
 		PClasses=getPluginClasses()
 		for pluginClass in PClasses:
@@ -96,10 +110,16 @@ class PyCCBackendPluginManager(object):
 				p.init()
 				p.registerInManager()
 			except Exception as e:
+				traceback.print_exception(*sys.exc_info())
 				print('Could not load plugin {0}:\n{1}: {2}'.format(pluginClass.__name__,type(e).__name__,str(e)),file=sys.stderr)
 
-	def registerPlugin(self, name, plugin, priority):
-		self.plugins.append((name, plugin, priority))
+
+	def registerPlugin(self, command, plugin, priority):
+		'''register a plugin under a given command with a priority
+
+plugins with higher pliority get the packets first
+'''
+		self.plugins.append((command, plugin, priority))
 		self.plugins.sort(key=lambda t: t[2])
 
 	def startup(self):
@@ -109,6 +129,7 @@ class PyCCBackendPluginManager(object):
 			plu[1].startup()
 			
 	def searchPlugin(self, name):
+		'''search for the plugin with the class name <name>'''
 		for plu in self.plugins:
 			if type(plu[1]).__name__ == name:
 				return plu[1]
@@ -130,7 +151,7 @@ class PyCCBackendPluginManager(object):
 		pass
 
 	def handleCommand(self, conPackage):
-		''' method is called for handle a command request
+		''' method is called for handleing a command request
 			conPackage: connection element (PyCCPackage)'''
 		for plugin in self.plugins:
 			if conPackage.command.startswith(plugin[0]):

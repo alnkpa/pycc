@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ''' GUI for PYCC '''
 
 import tkinter as tk

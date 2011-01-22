@@ -13,9 +13,16 @@ import time
 
 try:
 	socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-	with open('.port') as file:
-		port=int(file.readline().strip())
-	socket.connect(('127.0.0.1', port))
+	if len(sys.argv)>1:
+		host = sys.argv[1]
+	else:
+		host = '127.0.0.1'
+	if len(sys.argv) > 2:
+		port = int(sys.argv[2])
+	else:
+		with open('.port') as file:
+			port=int(file.readline().strip())
+	socket.connect((host, port))
 	con=backend.connection.PyCCConnection(socket,'testBackend')
 
 	run=True
