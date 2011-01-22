@@ -1,4 +1,5 @@
 *.pyc
 *~
 .port
+*.orig
 config/server.cfg
