@@ -1,10 +1,10 @@
 class Plugin(object):
-	'''This class is tge base of all Plugins
+	'''This class is the base of all Plugins
 	
 	It defines methods that all plugins need and use
 	Every plugin will be derived from this class
 
-PluginClass.registerdName 
+PluginClass.registeredName 
 	is the string all commands for the plugin start with.
 PluginClass.priority 
 	is the priority relative to other plugins.
@@ -73,9 +73,9 @@ The Plugin will not be used afterwards.
 		pass
 
 class EasyPlugin(Plugin):
-	'''This class is a advanced Plugin class for easier plugins
+	'''This class is an advanced Plugin class for easier plugins
 
-	Every command_* will used as a registered commit
+	Every command_* will be used as a registered command
 	Every plugin will be derived from this class
 
 '''
