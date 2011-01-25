@@ -13,8 +13,7 @@ class ProtocolException(Exception):
 		self.message = message
 
 	def __str__(self):
-		return "ProtocolException: {0} - {1}"
-			.format(self.type,self.message)
+		return "ProtocolException: {0} - {1}".format(self.type,self.message)
 
 class PyCCPackage(object):
 	""" record class
@@ -42,7 +41,7 @@ class PyCCPackage(object):
 			self.handle,self.command,self.data)
 
 	def dump(self):
-		print( 'PyCCP:\nType:{0}\\\nHandle:{1}\\\nCommand:{2}\\\nData:\n{3}\\'
+		print( 'PyCCP:\nType:{0}\\\nHandle:{1}\\\nCommand:{2}\\\nData:\n{3}\\'\
 			.format(self.type,self.handle,self.command,self.data))
 
 
@@ -127,12 +126,12 @@ class PyCCConnection(object):
 				posEndBoundary += 1
 		except IndexError: # no boundary found
 			self._boundary = False
-			self._element.command = self._buffer[posEndHandle+1:posEndLine]
+			self._element.command = self._buffer[posEndHandle+1:posEndLine]\
 				.decode('utf8').rstrip() # command is full line after handle
 			return True
 		else: # boundary found
 			self._boundary = self._buffer[posEndHandle+1:posEndBoundary]
-			self._element.command = self._buffer[posEndBoundary+1:posEndLine]
+			self._element.command = self._buffer[posEndBoundary+1:posEndLine]\
 				.decode('utf8').rstrip() # comand starts after boundary
 			return posEndLine # searching for boundary end nesessary
 

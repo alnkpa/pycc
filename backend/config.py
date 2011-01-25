@@ -21,11 +21,11 @@ class PyCCBackendConfig():
 
 	def getstr(self, section, value, default=None):
 		'''  return a string config value'''
-			return self.config.get(section,value)
+		return self.config.get(section,value)
 
 	def getint(self,section,value,default=None):
 		''' return int config value '''
-			return self.config.getint(section,value)
+		return self.config.getint(section,value)
 
 	def getNodeId(self):
 		''' return the backend node id'''
