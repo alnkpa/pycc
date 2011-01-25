@@ -136,12 +136,12 @@ plugins with higher pliority get the packets first
 		raise KeyError
 
 	def shutdown(self):
-		''' method is called directly before the server will stuting down'''
+		''' method is called directly before the server is shut down'''
 		for plu in self.plugins:
 			plu[1].shutdown()
 
 	def clientConnectionOpened(self,client):
-		''' method is called directly after a new connection to the server was opened
+		''' method is called directly after a new connection to the server has been opened
 			client: client connection (PyCCConnection)'''
 		pass
 

@@ -2,4 +2,7 @@
 '''Plugin loader module
 
 '''
-from manager import PyCCBackendPluginManager
+try:
+	from manager import PyCCBackendPluginManager
+except ImportError:
+	pass

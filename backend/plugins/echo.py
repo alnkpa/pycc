@@ -2,6 +2,7 @@ import Plugin
 import connection
 
 class EchoPlugin(Plugin.Plugin):
+	'''This Plugin responds to the sender with received package'''
 	registeredCommands="echo"
 	priority=5
 

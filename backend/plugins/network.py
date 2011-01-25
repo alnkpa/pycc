@@ -1,6 +1,9 @@
 import Plugin
 import connection
 
+
+# fix: document this module
+
 class ConnectionPlugin(Plugin.EasyPlugin):
 	'''The class implemented the network management and routing for pycc
 	'''

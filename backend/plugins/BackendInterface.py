@@ -3,6 +3,8 @@ try:
 except ImportError:
 	import __init__ as plugins
 	
+# fix: document this module
+
 class Backend(object):
 	'''Implements a backend'''
 	

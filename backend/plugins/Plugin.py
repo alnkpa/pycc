@@ -130,7 +130,7 @@ this method should not be overwritten'''
 	def recvCommand(self, package):
 		'''all commands for this plugin are passed to this function
 
-con is of type backend.connection.PyCCPackage
+package is of type backend.connection.PyCCPackage
 '''
 		for command in self._simplePlugin_commands:
 			if package.command.startswith(command):
@@ -172,7 +172,7 @@ class PyCCPluginToBackendInterface(object):
 		self._server = server
 
 	def getNodeIdForUser(self):
-		'''planed'''
+		'''planned'''
 		pass
 
 	def openConnection(self, host, port=62533):
@@ -182,7 +182,7 @@ class PyCCPluginToBackendInterface(object):
 	def getNodeConnections(self,nodeId):
 		''' iterate over all connection to a special node
 			if there is no connection to this node, a new connection
-			is automatically establish.'''
+			is automatically established.'''
 		for connection in self._server.getConnectionList(nodeId):
 			yield connection
 

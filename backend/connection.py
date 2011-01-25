@@ -2,7 +2,7 @@ import socket
 
 class ProtocolException(Exception):
 	''' Exception for pycc communication error
-	    This error will be raised, if the pycc protocol is not correct used
+	    This error will be raised, if the pycc protocol is not correctly used
 	    by the communication partner'''
 	ERNO_NO_COMMAND_HANDLE = 2
 	ERNO_INVALID_COMMAND_HANDLE = 3
@@ -21,8 +21,12 @@ class PyCCPackage(object):
 	    response and error messages of the PyCC protocol
 
 	    connection: connection to client [PyCCConnection]
-	    type: message type (request, response, error) [str:A,O,E]
-	    handle: message identifier - nesessary to assign responses to requests [?]
+	    type: message type [str:A,O,E]
+	        request - TYPE_REQUEST
+	        response - TYPE_RESPONSE
+	        error - TYPE_ERROR
+	    handle: message identifier - 
+	        nesessary to assign responses to requests
 	    command: command (handle by plugins) [str]
 	    data: data of message [bytearray]"""
 	TYPE_REQUEST='A'
@@ -238,6 +242,7 @@ class PyCCConnection(object):
 		self._nextComHandle += 2
 		return self._nextComHandle-2
 
+	# fix: needs to be commented
 	def sendPackage(self,package):
 		# send package (all types possible)
 		if self._status == 'udp' and self._mode == 'server': # could not send in udp server mode
