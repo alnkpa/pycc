@@ -11,17 +11,23 @@ import os
 import time
 
 try:
+	# first try global import
 	import pycc.backend.connection as connection
 except:
-	import sys
-	sys.path.append('..')
 	try:
+		# second try local import from parent directory
 		import backend.connection as connection
-	finally:
+	except ImportError:
+		import sys
+		sys.path.append('..')
 		try:
-			sys.path.remove('..')
-		except ValueError:
-			pass
+			# third try relative import from parent directory
+			import backend.connection as connection
+		finally:
+			try:
+				sys.path.remove('..')
+			except ValueError:
+				pass
 
 
 
@@ -33,7 +39,7 @@ serverStartCommand
 serverPort
 	the port we expect the server on
 serverStartupTries
-	int of how many times the server attemts to connect
+	int of how many times the server attemts to bind to its port
 defaultSocketArguments
 	default arguments for our socket
 '''
