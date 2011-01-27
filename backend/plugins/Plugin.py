@@ -77,7 +77,8 @@ The Plugin will not be used afterwards.
 '''
 		pass
 
-class EasyPlugin(Plugin):
+class EasyPlugin(Plugin): # fix: how can I tell the sender of the command that
+							# an error occurred
 	'''This class is an advanced Plugin class for easier plugins
 
 	Every command<Flags>_* will used as a registered command;
