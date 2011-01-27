@@ -1,8 +1,29 @@
+'''Manages all the contacts'''
+
 import Plugin
 
-class ContactPlugin(Plugin.Plugin):
-	''' Manages all the Contacts '''
-	registeredCommands = ["addAccount","deleteAccount","getAccountName","getAccountHash","getAccounts"]
+class ContactPlugin(Plugin.EasyPlugin):
+	'''Manages all the Contacts
+	
+		With this plugin you may read and change all the accounts given in
+		self.contacts
+		
+		self.contacts is a list containing tuples whose first items are the
+			AccountName and second nodeId
+		
+		addAccount		- needs AccountName and nodeId seperated by a 
+							colon in package.data
+						- adds the given account to a temporary list
+						- can be called by any package from anywhere in the 
+							moment
+		deleteAccount	- needs an AccountName to be deleted
+						- can be called by any package from anywhere in the 
+							moment
+		getAccounts		- returns all Accounts of the user
+						- does not need anything
+						- can be called by any package from anywhere in the 
+							moment'''
+	registeredCommands = ["addAccount","deleteAccount","getAccounts"]
 
 	def init(self):
 		'''initially get all'''
@@ -13,73 +34,34 @@ class ContactPlugin(Plugin.Plugin):
 			if line != "\n":
 				append((line.strip().split(":")[0],line.strip().split(":")[1]))		
 
-	def recvCommand(self,package):
-		''' Processes the given Command'''
-		command = package.command
-		arg = package.data
-		if command == "addAccount":
-			self.addAccount(arg)
-		elif command == "deleteAccount":
-			self.deleteAccount(arg)
-		elif command == "getAccountName":
-			self.getAccountName(arg,package)
-		elif command == "getAccountHash":
-			self.getAccountHash(arg,package)
-		elif command == "getAccounts":
-			self.getAccounts(package)
-
-	def addAccount(self,data):
+	def commandA_addAccount(self, command, argument):
 		'''Adds a new contact to the contact storage
-		Takes an argument with the form Hash:Name'''
-		data = data.decode("utf-8")
-		accountHash, accountName = data.split(":")		
-		self.contacts.append((accountHash,accountName))
+		Takes an argument with the form name:nodeId'''
+		argument = argument.decode("utf-8")
+		accountName, nodeId = argument.split(":")		
+		self.contacts.append((accountName, nodeId))
 		
-	def deleteAccount(self,data):
+	def commandA_deleteAccount(self, command, name):
 		'''Deletes a specific account by Name'''		
 		try:		
-			self.contacts.remove((data, returnAccountHash(data)))
+			self.contacts.remove((name, self.returnNodeId(name)))
 		except ValueError:
 			pass
 
-	def getAccountName(self,accountHash,package):
-		'''Get a specific accountName'''
-		for contact in self.contacts:
-			if contact[0]==accountHash:
-				package.data = contact[1]				
-				package.connection.sendResponse(package)	
-
-	def getAccountHash(self, accountName, package):
-		'''Get a specific accountHash'''
-		for contact in self.contacts:
-			if contact[1]==accountName:
-				package.data = contact[0]
-				print("eior")
-				package.connection.sendResponse(package)	#fixthat
-
-	def returnAccountHash(self,accountName):
-		'''Get a specific accountHash'''
-		for contact in self.contacts:
-			if contact[1]==accountName:
-				return contact[0]
-		raise KeyError
-	
-	def returnAccountAddress(self, accountName):
-		'''Get a specific accountAddress'''
-		for contact in self.contacts:
-			if contact[1] == accountName:
-				return contact[2]
-		raise KeyError
-
-	def getAccounts(self,package):
-		'''Get all of the accounts, comma seperated accountHash:accountName pairs are returned'''		
+	def commandR_getAccounts(self,package):
+		'''Get all of the accounts, comma seperated accountName:accountNodeId pairs are returned'''		
 		string=""		
 		for contact in self.contacts:
 			string=string+contact[0]+":"+contact[1]+","
-		package.data=string[:-1]
-		package.connection.sendResponse(package)
+		return string
+
+	def returnNodeId(self, name):
+		for contact in self.contacts:
+			if contact[0] == name:
+				return contact[1]
+		raise ValueError
 
 	def shutdown(self):
 		f=open(".contacts","w")
-		for contact in self.contacts:		
+		for contact in self.contacts:
 			f.write(contact[0]+":"+contact[1]+"\n")
