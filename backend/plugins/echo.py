@@ -1,12 +1,14 @@
 import Plugin
 import connection
 
-class EchoPlugin(Plugin.Plugin):
+class EchoPlugin(Plugin.EasyPlugin):
 	'''This Plugin responds to the sender with received package'''
-	registeredCommands="echo"
-	priority=5
 
-	def recvCommand(self, package):
-		if package.type != connection.PyCCPackage.TYPE_REQUEST:
-			return
+	def command_echo(self, package):
+		''' echo the package '''
 		package.connection.sendResponse(package)
+
+	def command_echoToFrontend(self, package):
+		''' echo this package to the frondends'''
+		for connection in self.backend.getNodeConnections(":frontend"):
+			connection.sendResponse(package)
