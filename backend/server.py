@@ -153,11 +153,16 @@ class PyCCBackendServer(object):
 		    :broadcast for broadcast connections
 		    :frontend for connection from frontends'''
 		count = 0
-		if node == ':broadcast':
+		if node == ':broadcast': # broadcast connections
 			for con in self._connections['broadcasts']:
 				yield con
 				count = -1
-		else:
+		elif node == ':frontend': # connections to frontends
+			for con in self._connections['clients']:
+				if con.getpeername()[0] == '127.0.0.1':
+						count += 1
+						yield con
+		else: # other (normal) node
 			for con in self._connections['clients']:
 				if con.partnerNodeId == node:
 						count += 1
