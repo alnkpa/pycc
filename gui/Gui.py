@@ -151,7 +151,10 @@ class MainWindow(tk.Tk):
 		self.loadContacts(accounts)
 	
 	def gotNewMessage(self, package):
-		'''Called when new message'''
+		'''Called when new message received'''
+			
+		print(package.data.decode("utf-8"))
+		sender = package.command.split(" ", 1)[1]
 		#currently not implemented
 		pass	
 
@@ -190,8 +193,8 @@ class MainWindow(tk.Tk):
 	def messageSent(self, package):
 		if package.type == package.TYPE_RESPONSE:
 			pass
-		elif package.type == package.TYPE_ERROR:
-			print('error', package.data)
+		elif package.type == package.TYPE_ERROR and package.data == "No such accountname":
+			print("Sie wollen eine Nachricht an einen nicht existierenden Nutzer schicken.")
 
 	def loadContacts(self, contacts):
 		''' fill contact list or add contact
