@@ -23,7 +23,6 @@ class ContactPlugin(Plugin.EasyPlugin):
 						- does not need anything
 						- can be called by any package from anywhere in the 
 							moment'''
-	registeredCommands = ["addAccount","deleteAccount","getAccounts"]
 
 	def init(self):
 		'''initially get all'''
@@ -34,7 +33,7 @@ class ContactPlugin(Plugin.EasyPlugin):
 			if line != "\n":
 				append((line.strip().split(":")[0],line.strip().split(":")[1]))		
 
-	def commandA_addAccount(self, command, argument):
+	def commandA_addAccount(self, package, command, argument):
 		'''Adds a new contact to the contact storage
 		Takes an argument with the form name:nodeId'''
 		argument = argument.decode("utf-8")
@@ -48,7 +47,7 @@ class ContactPlugin(Plugin.EasyPlugin):
 		except ValueError:
 			pass
 
-	def commandR_getAccounts(self,package):
+	def commandR_getAccounts(self, package):
 		'''Get all of the accounts, comma seperated accountName:accountNodeId pairs are returned'''		
 		string=""		
 		for contact in self.contacts:
@@ -59,6 +58,12 @@ class ContactPlugin(Plugin.EasyPlugin):
 		for contact in self.contacts:
 			if contact[0] == name:
 				return contact[1]
+		raise ValueError
+
+	def returnUserName(self,  nodeId):
+		for contact in self.contacts:
+			if contact[1] == nodeId:
+				return contact[0]
 		raise ValueError
 
 	def shutdown(self):
