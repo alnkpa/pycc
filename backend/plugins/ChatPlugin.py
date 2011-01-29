@@ -7,7 +7,7 @@ class ChatPlugin(Plugin.EasyPlugin):
 		use recvMessage to send a message to the user of this plugin
 		'''
 
-	def commandAU_sendMessage(self, package, command, argument):
+	def commandAU_sendMessage(self, packageargument):
 		name = argument
 		message = package.data
 		try:
@@ -16,15 +16,15 @@ class ChatPlugin(Plugin.EasyPlugin):
 				accountNodeId = contactPlugin.returnNodeId(name)
 				package.command = "recvMessage"
 				for connection in self.backend.getNodeConnections(accountNodeId):
-					connecticon.sendRequest(package)
+					connection.sendRequest(package)
 			except ValueError:
 				package.type = "E"
 				package.data = "No such accountname"
-				package.connection.sendErrors(package)
+				package.connection.sendError(package)
 		except KeyError:
 			package.type = "E"
 			package.data = "ContactPlugin not found"
-			package.connection.sendErrors(package)
+			package.connection.sendError(package)
 	
 	def command_recvMessage(self, package):
 		nodeId = package.connection.partnerNodeId
@@ -35,11 +35,11 @@ class ChatPlugin(Plugin.EasyPlugin):
 			except ValueError:
 				package.type = "E"
 				package.data = "No such nodeId"
-				package.connection.sendErrors(package)
+				package.connection.sendError(package)
 		except KeyError:
 			package.type = "E"
 			package.data = "ContactPlugin not found"
-			package.connection.sendErrors(package)
+			package.connection.sendError(package)
 		for connection in self.backend.getNodeConnections(":frontend"):
 			package.command = "newMessage " + accountName
 			connection.sendRequest(package)

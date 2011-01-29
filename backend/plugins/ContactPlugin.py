@@ -33,10 +33,9 @@ class ContactPlugin(Plugin.EasyPlugin):
 			if line != "\n":
 				append((line.strip().split(":")[0],line.strip().split(":")[1]))		
 
-	def commandA_addAccount(self, package, command, argument):
+	def commandA_addAccount(self, package, argument):
 		'''Adds a new contact to the contact storage
 		Takes an argument with the form name:nodeId'''
-		argument = argument.decode("utf-8")
 		accountName, nodeId = argument.split(":")		
 		self.contacts.append((accountName, nodeId))
 		
