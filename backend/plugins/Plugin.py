@@ -158,7 +158,7 @@ package is of type backend.connection.PyCCPackage
 					if type(result) is str or type(result) is bytearray:
 						package.data = result
 						package.connection.sendResponse(package)
-			break
+				break
 
 
 
