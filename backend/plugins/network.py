@@ -15,10 +15,13 @@ class ConnectionPlugin(Plugin.EasyPlugin):
 		return self.server.getNodeId()
 
 	def commandR_status(self, package):
+		'''reply with the status of the server'''
 		return self.server.status()
 
 	def commandA_connectTo(self, package, host, port=62533):
+		''''''
 		if self.backend.openConnection(host,int(port)):
+			# fix: what do true und false mean?
 			return True
 		else:
 			return False
