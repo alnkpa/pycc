@@ -153,11 +153,16 @@ plugins with higher pliority get the packets first
 	def handleCommand(self, conPackage):
 		''' method is called for handleing a command request
 			conPackage: connection element (PyCCPackage)'''
+		found = False
 		for plugin in self.plugins:
 			if conPackage.command.startswith(plugin[0]):
 				v= plugin[1].recvCommand(conPackage)
 				if v != CONTINUE:
-					break
+					found = True
+					return
+		if found is False:
+			conPackage.data = 'no such command'
+			conPackage.connection.sendError(conPackage)
 
 	def getCommandList(self):
 		'''for debug return a list of command, plugin'''
