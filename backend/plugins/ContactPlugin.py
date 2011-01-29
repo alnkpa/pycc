@@ -52,6 +52,9 @@ class ContactPlugin(Plugin.EasyPlugin):
 		for contact in self.contacts:
 			string=string+contact[0]+":"+contact[1]+","
 		return string
+		
+	def command_accountList(self,  package):
+		print(self.contacts)
 
 	def returnNodeId(self, name):
 		for contact in self.contacts:

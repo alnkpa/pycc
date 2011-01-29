@@ -7,7 +7,7 @@ class ChatPlugin(Plugin.EasyPlugin):
 		use recvMessage to send a message to the user of this plugin
 		'''
 
-	def commandAU_sendMessage(self, packageargument):
+	def commandAU_sendMessage(self, package,  argument):
 		name = argument
 		message = package.data
 		try:
@@ -32,6 +32,9 @@ class ChatPlugin(Plugin.EasyPlugin):
 			contactPlugin = self.PyCCManager.searchPlugin("ContactPlugin")
 			try:
 				accountName = contactPlugin.returnUserName(nodeId)
+				for connection in self.backend.getNodeConnections(":frontend"):
+					package.command = "newMessage " + accountName
+					connection.sendRequest(package)
 			except ValueError:
 				package.type = "E"
 				package.data = "No such nodeId"
@@ -40,6 +43,3 @@ class ChatPlugin(Plugin.EasyPlugin):
 			package.type = "E"
 			package.data = "ContactPlugin not found"
 			package.connection.sendError(package)
-		for connection in self.backend.getNodeConnections(":frontend"):
-			package.command = "newMessage " + accountName
-			connection.sendRequest(package)
