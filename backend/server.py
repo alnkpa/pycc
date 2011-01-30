@@ -82,13 +82,16 @@ class PyCCBackendServer(object):
 						parsed = sock.parseInput()
 						if parsed is False: # could not read
 							self.clientConnectionClosed(sock)
-						elif type(parsed) is backend.connection.PyCCPackage:
-							# inform about new data
-							ip = sock.getpeername()[0]
-							print("[%s] %s" % (ip, parsed))
+							continue
+						if parsed is None:
+							continue
+						# inform about new data
+						ip = sock.getpeername()[0]
+						for package in parsed:
+							print("[%s] %s" % (ip, package))
 							# handle package via plugin manager
-							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
-								self.handleCommand(sock,parsed)
+							if package.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
+								self.handleCommand(sock,package)
 				except (backend.connection.ProtocolException, socket.error) as e:
 					print("{0}: {1}".format(type(e).__name__,e),file=sys.stderr)
 					traceback.print_tb(e.__traceback__)

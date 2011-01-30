@@ -79,13 +79,16 @@ class PyCCConnection(object):
 		self._buffer = bytearray() # buffer, for messages with are recieved over more socket read calls
 		self._callbacks = {} # list of callbacks for message responses and errors
 		self._heloUdpPorts = [] # list of udp port which had send an helo
+		self._initData = bytearray() # data which should send to server after server helo
 
 	def _parseMessageStart(self):
 		''' this method parsed the _buffer attribute for a complete message
 		    Return values:
 			- None: no message header end found
-			- True: message without data found
-			- int: message with boundary found - number is position of header end'''
+			- int: number is position of header end
+				if self._boundary==False: message without data found
+				if self._boundary!=False: message with boundary found
+				'''
 		self._element = PyCCPackage(connection=self) # prepare PyCCPackage for next mesasge
 		self._boundary = None # no boundary known
 		if self._status == 'udp' and self._buffer.startswith(b'PyCC|'): # Receive Header in UDP-Connection
@@ -132,7 +135,7 @@ class PyCCConnection(object):
 			self._boundary = False
 			self._element.command = self._buffer[posEndHandle+1:posEndLine]\
 				.decode('utf8').rstrip() # command is full line after handle
-			return True
+			return posEndLine
 		else: # boundary found
 			self._boundary = self._buffer[posEndHandle+1:posEndBoundary]
 			self._element.command = self._buffer[posEndBoundary+1:posEndLine]\
@@ -141,11 +144,10 @@ class PyCCConnection(object):
 
 	def parseInput(self):
 		""" parse new unread data in the socket
-		    return recieved connection packages
-		    Return:
-		      False: connection closed
-		      None: new new packages
-		      PyCCPackage: new package
+		    return None if no (complete) packages recieved
+		    return False if the connection was closed/read error
+		    retun a list of all recieved connection packages
+		    raises ProtocolException on pycc protocol errors
 		    """
 
 		newData, self._address = self._socket.recvfrom(8192)
@@ -160,6 +162,9 @@ class PyCCConnection(object):
 				if self._mode != 'udp': # if tcp connection, answer -> finish handshace
 					self.sendstr('PyCC|{version}|{nodeid}\n'.format(version=PyCCConnection.version,nodeid=self._nodeid))
 				self._status = 'open' # connection is succesfully opend
+				if len(self._initData) > 0: # there are data which should be send to server
+					self.send(self._initData)
+					self._initData = bytearray()
 				# remove header from data:
 				newData = newData[newData.find(bytearray(b'\n'))+1:]
 				if len(newData) == 0: # no more data available
@@ -199,27 +204,35 @@ class PyCCConnection(object):
 				return None
 
 		self._buffer += newData # append now data to buffer
-		result = self._parseMessageStart() # search for message header
-		if result == False or result is None: # not all data received
-			return
-		elif result is True: # no boundary set -> one line
-			self._element.data = None # no data
-			self._buffer = self._buffer = bytearray() # message read
+		packages = None
+		while True:
+			result = self._parseMessageStart() # search for message header
+			if type(result) is not int: # not all data received
+				return packages
+			elif self._boundary is False: # no boundary set -> one line
+				self._element.data = None # no data
+				packageEnd = result
+			else: # package with boundary found
+				pos = self._buffer.find(self._boundary,result) # search for boundary
+				if pos == -1: # boundary not yet recieved
+					return packages # no new package there
+				else: # boundary found
+					self._element.data = self._buffer[result+1:pos] # extract data
+					packageEnd = pos+len(self._boundary)
+			# finish parsing of last package:
+			package = self._getNewPackage(self._element) # handle callback
+			if package is not None:
+				if packages is None:
+					packages = []
+				packages.append(package)
+			self._buffer = self._buffer[packageEnd+1:]
+			if self._buffer.startswith(bytearray(b'\r')):
+				self._buffer = self._buffer[1:]
+			if self._buffer.startswith(bytearray(b'\n')):
+				self._buffer = self._buffer[1:]
 			self._boundary = None # no boundary known (of next package)
-			return self._getNewPackage(self._element) # result recieved package
-		elif type(result) is int: # package with boundary found
-			pos = self._buffer.find(self._boundary,result) # search for boundary
-			if pos == -1: # boundary not yet recieved
-				return None # no new package there
-			else: # boundary found
-				self._element.data = self._buffer[result+1:pos] # extract data
-				self._buffer = self._buffer[pos+len(self._boundary)+1:]
-				if self._buffer.startswith(bytearray(b'\r')):
-					self._buffer = self._buffer[1:]
-				if self._buffer.startswith(bytearray(b'\n')):
-					self._buffer = self._buffer[1:]
-				self._boundary = None # no boundary known (of next package)
-				return self._getNewPackage(self._element) # return new package
+			if len(self._buffer) == 0: # no more data to parse
+				return packages
 
 	def _getNewPackage(self,package):
 		''' all recieved packages are transfered throught this method
@@ -264,7 +277,10 @@ class PyCCConnection(object):
 		message += data # append data to package
 		if self._status == 'udp': # send header in udp mode
 			self.sendstr('PyCC|{version}|{node}\n'.format(version=PyCCConnection.version,node = self._nodeid))
-		self.send(message) # send binary array via socket
+		if self._status == 'new': # client mode - no server init received
+			self._initData+=message
+		else:
+			self.send(message) # send binary array via socket
 
 	def sendRequest(self, package, callback = None, callbackExtraArg = None):
 		'''send new request to connection partner
