@@ -38,6 +38,9 @@ class Broadcast(Plugin.Plugin):
 		self.baddrs= []
 		self.addBroadcastAdresses(self.loadBroadcasts())
 
+	def startup(self):
+		self.broadcastState()
+
 	# load, save broadcasts 
 
 	def loadBroadcasts(self):
@@ -112,29 +115,38 @@ class Broadcast(Plugin.Plugin):
 			last = b
 		return b2
 
-
-	def broadcastState(self, packet):
-		'''broadcast the state of this node'''
+	def buildRecvBroadcastPackege(self):
+		package = self.backend.newPackage()
 		user= getattr(self, 'user', None)
 		if user is None:
-			user= self.manager.searchPlugin('User')
+			user= self.manager.searchPlugin('UserPlugin')
 		name=  user.get('name', '')
 		node=  self.backend.getNodeId()
 		state= user.get('state', '')
+		userhash=  user.get('userhash', '')
+		revision=  user.revision
 		#
-		packet.command= 'recvBroadcast'
-		packet.type= packet.TYPE_REQUEST
-		packet.handle+= 2
+		package.command= 'recvBroadcast'
+		package.type= package.TYPE_REQUEST
 		broadcastAdresses= self.broadcasts2str(self.getBroadcastAdresses())
-		packet.data= '\n'.join([self.escape(name), \
+		package.data= '\n'.join([self.escape(name), \
 								 self.escape(node), \
-								 self.escape(state),
+								 self.escape(state), \
+								 self.escape(userhash), \
+								 self.escape(str(revision)), \
 								 self.escape(broadcastAdresses)])
-		self.sendBroadcast(packet)
+		return package
+
+	def broadcastState(self, packet=None):
+		'''broadcast the state of this node'''
+		self.sendBroadcast(self.buildRecvBroadcastPackege())
 
 	def recvBroadcast(self, packet):
 		'''recv a broadcast sent by broadcastState'''
-		self.server.nodeAnnounce(packet) # inform server about node address
+		if self.server.nodeAnnounce(packet): # inform server about node address
+			# new client
+			packet.connection.sendRequest(self.buildRecvBroadcastPackege())
+
 		l= packet.data.split(b'\n')
 		# user name
 		if len(l) >= 1:
@@ -152,9 +164,24 @@ class Broadcast(Plugin.Plugin):
 			# fix: what happes if recved state?
 		else:
 			state= b''
+		# state
+		if len(l) >= 5:
+			try:
+				userhash= self.unescape(l[3]).decode('utf8')
+				revision= int(self.unescape(l[4]).decode('utf8'))
+				contactPlugin = self.manager.searchPlugin('ContactPlugin')
+				contactPlugin.commandA_announceUser(packet, userhash, revision)
+			except KeyError:
+				pass
+			except ValueError:
+				pass
+		else:
+			userhash= b''
+			revision= b''
+
 		# broadcast addresses
-		if len(l) >= 4:
-			ba= self.unescape(l[3]).decode('UTF-8')
+		if len(l) >= 6:
+			ba= self.unescape(l[5]).decode('UTF-8')
 			# decode the addresses
 			ba= self.str2broadcasts(ba)
 			self.addBroadcastAdresses(ba)
@@ -181,6 +208,7 @@ class Broadcast(Plugin.Plugin):
 	def sendBroadcast(self, packet):
 		'''send a packet to all broadcast adresses'''
 		for conn in self.backend.getNodeConnections(":broadcast"):
+			packet.handle = None
 			conn.sendRequest(packet)
 
 	def addBroadcastAdresses(self, l):

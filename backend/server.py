@@ -204,4 +204,10 @@ class PyCCBackendServer(object):
 
 	def nodeAnnounce(self, package):
 		''' add new relation between network address and node'''
-		self._nodeAddresses[package.connection.partnerNodeId] = package.connection._address[0]
+		if package.connection.partnerNodeId == self._nodeId:
+			return False
+		if package.connection.partnerNodeId in self._nodeAddresses:
+			return False
+		else:
+			self._nodeAddresses[package.connection.partnerNodeId] = package.connection._address[0]
+			return True
