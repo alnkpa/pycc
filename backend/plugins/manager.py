@@ -125,9 +125,12 @@ plugins with higher pliority get the packets first
 	def startup(self):
 		''' method is called directly after the server has started up'''
 		self.loadPlugins()
+		startedPlugins = []
 		for plu in self.plugins:
-			plu[1].startup()
-			
+			if plu[1] not in startedPlugins:
+				plu[1].startup()
+				startedPlugins.append(plu[1])
+
 	def searchPlugin(self, name):
 		'''search for the plugin with the class name <name>'''
 		for plu in self.plugins:
@@ -137,8 +140,11 @@ plugins with higher pliority get the packets first
 
 	def shutdown(self):
 		''' method is called directly before the server is shut down'''
+		shutdownedPlugins = []
 		for plu in self.plugins:
-			plu[1].shutdown()
+			if plu[1] not in shutdownedPlugins:
+				plu[1].shutdown()
+				shutdownedPlugins.append(plu[1])
 
 	def clientConnectionOpened(self,client):
 		''' method is called directly after a new connection to the server has been opened
