@@ -46,3 +46,13 @@ defaultValue defaults to None.
 	def attributeList(self):
 		''' return a list of all attributes of this user'''
 		return self._attributes.keys()
+
+	def __str__(self):
+		result = '{0}@r{1}'.format(self.get('userhash','<unknown>'),self.revision)
+		for option in self._attributes:
+			try:
+				result+='\n>>{0}\n{1}'.format(option,str(self._attributes[option]))\
+					.replace('\n','\n\t')
+			except UnicodeError:
+				continue
+		return result

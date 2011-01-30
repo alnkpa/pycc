@@ -46,6 +46,7 @@ see lib/records.py: User for more information
 		'''  the user attribute "attribute" (param) to a new  value'''
 		self[attribute]= packege.data
 		self.config.set(attribute, packege.data)
+		self.config.set('revision', self.revision)
 
 
 	def commandRA_getUserAttr(self, packege, attribute):
@@ -56,8 +57,14 @@ see lib/records.py: User for more information
 	def commandA_setUserRevision(self, packege, revision):
 		''' set revision of user data (use only if you know what you do)'''
 		self.revision = int(revision)
+		self.config.set('revision', self.revision)
 
 
 	def commandRA_listUserAttrs(self, packege):
 		''' return the user attribute "attribute" (param)'''
 		return "\n".join(self.attributeList())
+
+
+	def commandR_userInfo(self, packege):
+		''' return all information about yourself'''
+		return str(self)
