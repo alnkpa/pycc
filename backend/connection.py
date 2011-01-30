@@ -41,8 +41,14 @@ class PyCCPackage(object):
 		self.data=data
 
 	def __str__(self):
+		try:
+			outputdata = self.data.decode('utf8').replace('\n','\n\t')
+		except UnicodeError:
+			outputdata = self.data
+		except AttributeError:
+			outputdata = 'None'
 		return 'PyCCP:{0}{1}:{2}|{3}'.format(self.type,
-			self.handle,self.command,self.data)
+			self.handle,self.command,outputdata)
 
 	def dump(self):
 		print( 'PyCCP:\nType:{0}\\\nHandle:{1}\\\nCommand:{2}\\\nData:\n{3}\\'\
@@ -63,6 +69,7 @@ class PyCCConnection(object):
 		    socket: tcp-connection instance
 		    mode: client or server (e.g. helpful for protocol init)"""
 		self._socket = socket # underlining socket.socket for network communication
+		self._udpResponseSocket = None # socket to answer udp data
 		self._nodeid = nodeid # node id of this backend
 		self.partnerNodeId = None # node id of communication partner
 		self._address = None # partner address in udp connections
@@ -257,9 +264,6 @@ class PyCCConnection(object):
 
 	# fix: needs to be commented
 	def sendPackage(self,package):
-		# send package (all types possible)
-		if self._status == 'udp' and self._mode == 'server': # could not send in udp server mode
-			return True
 		if package.data is None: # oneline package
 			boundary=''
 			data=b''
@@ -275,6 +279,17 @@ class PyCCConnection(object):
 			.format(type=package.type,comHandle=package.handle,
 			endBoundary=boundary,command=package.command).encode('utf8')
 		message += data # append data to package
+		# send package (all types possible)
+		if self._status == 'udp' and self._mode == 'server': # could not send in udp server mode
+			if self._udpResponseSocket is None:
+				self._udpResponseSocket = udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+				self._udpResponseSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				self._udpResponseSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+				self._udpResponseSocket.connect((self._address[0], 62533))
+			self._udpResponseSocket.send('PyCC|{version}|{node}\n'\
+				.format(version=PyCCConnection.version,node = self._nodeid).encode('utf8'))
+			self._udpResponseSocket.sendall(message) # send binary array via socket
+			return True
 		if self._status == 'udp': # send header in udp mode
 			self.sendstr('PyCC|{version}|{node}\n'.format(version=PyCCConnection.version,node = self._nodeid))
 		if self._status == 'new': # client mode - no server init received
