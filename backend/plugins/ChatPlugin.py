@@ -17,9 +17,11 @@ class ChatPlugin(Plugin.EasyPlugin):
 		try:
 			# search for the running contactPlugin
 			contactPlugin = self.PyCCManager.searchPlugin("ContactPlugin")
+			chatLogPlugin = self.PyCCManager.searchPlugin("ChatLogPlugin")
 			try:
 				# search for the relevant nodeId
 				accountNodeId = contactPlugin.returnNodeId(name)
+				chatLogPlugin.commandAU_logSendMessage(package,  name)
 				# change the command so the other backend will know it belongs to it
 				package.command = "recvMessage"
 				# send the message to every connection belonging to the nodeId
@@ -32,7 +34,7 @@ class ChatPlugin(Plugin.EasyPlugin):
 				package.connection.sendError(package)
 		except KeyError:
 			package.type = "E"
-			package.data = "ContactPlugin not found"
+			package.data = "relevant Plugins not found"
 			package.connection.sendError(package)
 	
 	def command_recvMessage(self, package):
@@ -43,9 +45,11 @@ class ChatPlugin(Plugin.EasyPlugin):
 		try:
 			# search for the running contactPlugin
 			contactPlugin = self.PyCCManager.searchPlugin("ContactPlugin")
+			chatLogPlugin = self.PyCCManager.searchPlugin("ChatLogPlugin")
 			try:
 				# search for the relevant username
 				accountName = contactPlugin.returnUserName(nodeId)
+				chatLogPlugin.commandAU_logRecvMessage(package, accountName)
 				# forward message to every frontend
 				for connection in self.backend.getNodeConnections(":frontend"):
 					package.command = "newMessage " + accountName
