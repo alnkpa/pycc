@@ -93,6 +93,12 @@ class PyCCBackendServer(object):
 					print("{0}: {1}".format(type(e).__name__,e),file=sys.stderr)
 					traceback.print_tb(e.__traceback__)
 					self.clientConnectionClosed(sock)
+				except Exception as e:
+					print("{0}: {1}".format(type(e).__name__,e),file=sys.stderr)
+					traceback.print_tb(e.__traceback__)
+					self._read = False
+					print("SERVER SHUTDOWN")
+					break
 
 	def clientConnectionOpened(self, clientSocket):
 		''' prepare a new connection from a client (frontend or other backend)'''
@@ -151,17 +157,23 @@ class PyCCBackendServer(object):
 	def getConnectionList(self, node):
 		''' return a list with all connection to a specific node
 		    :broadcast for broadcast connections
-		    :frontend for connection from frontends'''
+		    :frontend for connection from frontends
+		    :clients for all connections to connected frontends/other backends'''
 		count = 0
 		if node == ':broadcast': # broadcast connections
 			for con in self._connections['broadcasts']:
 				yield con
 				count = -1
+			return
 		elif node == ':frontend': # connections to frontends
 			for con in self._connections['clients']:
 				if con.getpeername()[0] == '127.0.0.1':
-						count += 1
 						yield con
+			return
+		elif node == ':clients':
+			for con in self._connections['clients']:
+				yield con
+			return
 		else: # other (normal) node
 			for con in self._connections['clients']:
 				if con.partnerNodeId == node:
