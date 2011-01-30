@@ -113,7 +113,7 @@ class PyCCPluginConfig():
 		sections = []
 		for section in self._config.sections():
 			if section.startswith(self._sectionPrefix):
-				sections.append(section[len(self._sectionPrefix):])
+				sections.append(section[len(self._sectionPrefix)+1:])
 		return sections
 
 	def options(self, section=None):
