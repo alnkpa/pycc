@@ -31,7 +31,10 @@ class ContactPlugin(Plugin.EasyPlugin):
 		for contacthash in self.config.sections(): # iterate about all saved contacts
 			contact = records.User(userhash = contacthash)
 			for option in self.config.options(contacthash):
-				contact[option] = self.config.get(option, section = contacthash)
+				if option == 'revision':
+					contact.revision = int(self.config.get(option, section = contacthash))
+				else:
+					contact[option] = self.config.get(option, section = contacthash)
 			self.contacts[contacthash] = contact
 
 	def startup(self):
@@ -72,8 +75,15 @@ class ContactPlugin(Plugin.EasyPlugin):
 		'''Get all of the accounts, comma seperated accountName:accountNodeId pairs are returned'''
 		string=""
 		for contact in self.contacts:
-			string=string+self[contact].username+":"+self[contact].userhash+","
+			string=string+self.contacts[contact].username+":"+self.contacts[contact].userhash+","
 		return string[:-1] # remove last ,
+
+	def commandR_listAccounts(self, package):
+		'''list all avaibable attributes about all known user'''
+		string=""
+		for contact in self.contacts:
+			string += str(self.contacts[contact])+"\n\n"
+		return string[:-2] # remove last \n\n
 
 	def command_accountList(self,  package):
 		print(self.contacts)
@@ -91,7 +101,11 @@ class ContactPlugin(Plugin.EasyPlugin):
 
 	def commandA_announceUser(self, package, userhash, revision):
 		''' other backend inform us about its new/current user settings'''
+		if userhash.strip() == self.user.userhash.strip(): # get yourself
+			return
 		revision = int(revision) # revision have to be an integer
+		if userhash in self.contacts:
+			self.contacts[userhash]['node'] = package.connection.partnerNodeId
 		if userhash in self.contacts and self.contacts[userhash].revision >= revision:
 			return # no new information
 		# fetch a list of all user attributes of the other backend:
@@ -123,12 +137,12 @@ class ContactPlugin(Plugin.EasyPlugin):
 
 	def returnNodeId(self, name):
 		for contact in self.contacts:
-			if contact.username == name:
-				return contact.userhash
+			if self.contacts[contact].username == name:
+				return self.contacts[contact].node
 		raise ValueError
 
 	def returnUserName(self,  nodeId):
 		for contact in self.contacts:
-			if contact[1] == nodeId:
-				return contact[0]
+			if self.contacts[contact].node == nodeId:
+				return self.contacts[contact].username
 		raise ValueError
