@@ -69,7 +69,7 @@ class PyCCConnection(object):
 		    socket: tcp-connection instance
 		    mode: client or server (e.g. helpful for protocol init)"""
 		self._socket = socket # underlining socket.socket for network communication
-		self._udpResponseSocket = None # socket to answer udp data
+		self._udpResponseSockets = {} # sockets to answer udp data (per source address)
 		self._nodeid = nodeid # node id of this backend
 		self.partnerNodeId = None # node id of communication partner
 		self._address = None # partner address in udp connections
@@ -281,14 +281,15 @@ class PyCCConnection(object):
 		message += data # append data to package
 		# send package (all types possible)
 		if self._status == 'udp' and self._mode == 'server': # could not send in udp server mode
-			if self._udpResponseSocket is None:
-				self._udpResponseSocket = udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-				self._udpResponseSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-				self._udpResponseSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-				self._udpResponseSocket.connect((self._address[0], 62533))
-			self._udpResponseSocket.send('PyCC|{version}|{node}\n'\
+			if self._address[0] not in self._udpResponseSockets:
+				udpResponseSocket = udpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+				udpResponseSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				udpResponseSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+				udpResponseSocket.connect((self._address[0], 62533))
+				self._udpResponseSockets[self._address[0]] = udpResponseSocket
+			self._udpResponseSockets[self._address[0]].send('PyCC|{version}|{node}\n'\
 				.format(version=PyCCConnection.version,node = self._nodeid).encode('utf8'))
-			self._udpResponseSocket.sendall(message) # send binary array via socket
+			self._udpResponseSockets[self._address[0]].sendall(message) # send binary array via socket
 			return True
 		if self._status == 'udp': # send header in udp mode
 			self.sendstr('PyCC|{version}|{node}\n'.format(version=PyCCConnection.version,node = self._nodeid))
