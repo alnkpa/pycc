@@ -30,15 +30,19 @@ try:
 	while run:
 		try:
 			data=con.parseInput()
-			if type(data) is backend.connection.PyCCPackage:
-				print('$$$${type}{handle}:{command}'.format(type=data.type,
-					handle=data.handle,command=data.command))
+			if type(data) is not list:
+				continue
+			for package in data:
+				if type(package) is not backend.connection.PyCCPackage:
+					continue
+				print('$$$${type}{handle}:{command}'.format(type=package.type,
+					handle=package.handle,command=package.command))
 				try:
-					print(data.data.decode('utf8'))
+					print(package.data.decode('utf8'))
 				except AttributeError:
 					pass
 				except UnicodeError:
-					print(data.data)
+					print(package.data)
 
 		except KeyboardInterrupt:
 			command = input('PyCC: ')

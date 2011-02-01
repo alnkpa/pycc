@@ -1,3 +1,5 @@
+import connection
+
 class Plugin(object):
 	'''This class is the base of all Plugins
 	
@@ -77,8 +79,7 @@ The Plugin will not be used afterwards.
 '''
 		pass
 
-class EasyPlugin(Plugin): # fix: how can I tell the sender of the command that
-							# an error occurred
+class EasyPlugin(Plugin):
 	'''This class is an advanced Plugin class for easier plugins
 
 	Every command<Flags>_* will used as a registered command;
@@ -95,6 +96,7 @@ class EasyPlugin(Plugin): # fix: how can I tell the sender of the command that
 			if the method return a string or binary data
 			a response package with this data is send.
 			(other attributes were not changed)
+			Info: package.connection.send{Error,Response,Request} are working as well
 		U: data must be utf8
 			the data have to be utf8 string, no binary data
 			possible.
@@ -152,12 +154,14 @@ package is of type backend.connection.PyCCPackage
 					except TypeError: # wrong arguments
 						package.data = 'wrong arguments'
 						package.connection.sendError(package)
+						break
 				else:
 					result=getattr(self,call)(package)
 				if 'R' in flags:
 					if type(result) is str or type(result) is bytearray:
 						package.data = result
 						package.connection.sendResponse(package)
+				break
 
 
 
@@ -171,10 +175,6 @@ class PyCCPluginToBackendInterface(object):
 		''' init interface'''
 		self._manager = manager
 		self._server = server
-
-	def getNodeIdForUser(self):
-		'''planned'''
-		pass
 
 	def openConnection(self, host, port=62533):
 		'''connect to a specifical host (server or other chat client backend)'''
@@ -190,3 +190,6 @@ class PyCCPluginToBackendInterface(object):
 	def getNodeId(self):
 		''' return node id of currrent backend'''
 		return self._server.getNodeId()
+
+	def newPackage(self, **kargs):
+		return connection.PyCCPackage(**kargs)

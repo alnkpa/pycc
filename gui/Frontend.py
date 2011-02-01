@@ -139,21 +139,22 @@ return wether the connection is alive
 		while responses:
 			responses-= 1
 			try:
-				package= self.connection.parseInput()
+				packages= self.connection.parseInput()
 			except socket.error:
 				break
-			if package is None:
+			if packages is None:
 				continue
-			if package is False:
+			if packages is False:
 				return False
-			if package.type == package.TYPE_REQUEST:
-				self._handleCommand(package)
-				continue
-			callback= self.callbacks.get(package.handle, None)
-			if callback is None:
-				continue
-			if not callback(package):
-				self.callbacks.pop(package.handle)
+			for package in packages:
+				if package.type == package.TYPE_REQUEST:
+					self._handleCommand(package)
+					continue
+				callback= self.callbacks.get(package.handle, None)
+				if callback is None:
+					continue
+				if not callback(package):
+					self.callbacks.pop(package.handle)
 		return True
 		
 	def startBackend(self, command= None, timeout= 1):
