@@ -50,3 +50,40 @@ class pyccConsole(cmd.Cmd):
 	def do_EOF(self, line):
 		''' close console'''
 		return True
+
+
+	def do_sendMessage(self, args):
+		''' sends message to other chat user'''
+		args = args.split(' ')
+		if len(args) == 1: # no message
+			message = ''
+			readMore = True
+			while readMore:
+				newMessage = input('|')
+				if newMessage:
+					if newMessage[-1] == '\\':
+						message += newMessage[0:-1] + '\n'
+					else:
+						message += newMessage + '\n'
+				else:
+					readMore = False
+		else:
+			message = " ".join(args[1:])
+		self.todoQueue.put(('sendMessage', args[0], message[0:-1]))
+		self.notifyEvent.set()
+		self.logicThread.syncRequestEvent.clear()
+		if not self.logicThread.syncRequestEvent.wait(0.2):
+			print('request timed out')
+
+	def complete_sendMessage(self, text, line, start_index, end_index):
+		try:
+			self.logicThread.accountLock.acquire()
+			if text:
+				return [
+					useraccount + ' ' for useraccount in self.logicThread.accounts
+					if useraccount.startswith(text)
+				]
+			else:
+				return list(self.logicThread.accounts.keys())
+		finally:
+			self.logicThread.accountLock.release()

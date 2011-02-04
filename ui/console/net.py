@@ -77,6 +77,9 @@ class logicThread(threading.Thread):
 				if newData[0] == 'shutdown':
 					self.shutdown()
 					continue
+				if newData[0] == 'sendMessage':
+					self.sendMessage(newData[1], newData[2])
+					continue
 			self.notifyEvent.clear()
 
 	def sendPackage(self, package, callback=None):
@@ -123,3 +126,10 @@ class logicThread(threading.Thread):
 			self.accountLock.release()
 		except:
 			print("error")
+
+	def sendMessage(self, user, message):
+		package = self.newRequest()
+		package.command = 'sendMessage {0}'.format(user)
+		package.data = message
+		self.sendPackage(package, self.recvStatus)
+		self.syncRequestEvent.set()
