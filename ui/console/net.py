@@ -42,9 +42,12 @@ class logicThread(threading.Thread):
 		self.notifyEvent = notifyEvent
 		self.syncRequestEvent = threading.Event()
 		self.callbacks = {}
+		self.accounts = {}
+		self.accountLock = threading.Lock()
 
 	def run(self):
 		work = True
+		self.requestAccountList()
 		while work and self.notifyEvent.wait(): # wait for new input packages or console request
 			while not self.inputQueue.empty():
 				package = self.inputQueue.get()
@@ -107,3 +110,16 @@ class logicThread(threading.Thread):
 		package.command = 'shutdown'
 		self.sendPackage(package)
 		self.syncRequestEvent.set()
+
+	def requestAccountList(self):
+		package = self.newRequest()
+		package.command = 'getAccounts'
+		self.sendPackage(package, self.getAccountList)
+
+	def getAccountList(self, package):
+		try:
+			self.accountLock.acquire()
+			self.accounts = {user.split(":")[0]: user.split(":")[1] for user in  package.data.decode('utf8').split(",") }
+			self.accountLock.release()
+		except:
+			print("error")

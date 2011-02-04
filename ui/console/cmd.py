@@ -14,8 +14,12 @@ class pyccConsole(cmd.Cmd):
 		self.todoQueue = todoQueue
 		self.notifyEvent = notifyEvent
 
+	def completenames(self, text, *ignored):
+		''' add blank to commands for faster completion'''
+		return [complete + ' ' for complete in cmd.Cmd.completenames(self, text, *ignored)]
 
 	def do_status(self, args):
+		''' list information about open connections and other backend information'''
 		self.todoQueue.put(('status', None))
 		self.notifyEvent.set()
 		self.logicThread.syncRequestEvent.clear()
@@ -24,6 +28,7 @@ class pyccConsole(cmd.Cmd):
 
 
 	def do_connectTo(self, args):
+		''' open connection to pycc (relay) server'''
 		self.todoQueue.put(('connectTo', args))
 		self.notifyEvent.set()
 		self.logicThread.syncRequestEvent.clear()
@@ -32,15 +37,16 @@ class pyccConsole(cmd.Cmd):
 
 
 	def do_shutdown(self, args):
+		''' shutdown pycc backend and exit console'''
 		self.todoQueue.put(('shutdown', None))
 		self.notifyEvent.set()
 		if not self.logicThread.syncRequestEvent.wait(1):
 			print('request timed out')
 		return True
-		
 
 	def emptyline(self):
 		pass
 
 	def do_EOF(self, line):
+		''' close console'''
 		return True
