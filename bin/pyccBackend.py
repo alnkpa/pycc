@@ -8,9 +8,7 @@ import sys
 sys.path.append('.')
 sys.path.append('./backend')
 sys.path.append('./backend/plugins')
-sys.path.append('..')
-sys.path.append('../backend')
-sys.path.append('../backend/plugins')
+sys.path.append('./lib')
 
 import backend
 import backend.config

@@ -82,17 +82,26 @@ class PyCCBackendServer(object):
 						parsed = sock.parseInput()
 						if parsed is False: # could not read
 							self.clientConnectionClosed(sock)
-						elif type(parsed) is backend.connection.PyCCPackage:
-							# inform about new data
-							ip = sock.getpeername()[0]
-							print("[%s] %s" % (ip, parsed))
+							continue
+						if parsed is None:
+							continue
+						# inform about new data
+						ip = sock.getpeername()[0]
+						for package in parsed:
+							print("[%s] %s" % (ip, package))
 							# handle package via plugin manager
-							if parsed.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
-								self.handleCommand(sock,parsed)
+							if package.type == backend.connection.PyCCPackage.TYPE_REQUEST: #Request
+								self.handleCommand(sock,package)
 				except (backend.connection.ProtocolException, socket.error) as e:
 					print("{0}: {1}".format(type(e).__name__,e),file=sys.stderr)
 					traceback.print_tb(e.__traceback__)
 					self.clientConnectionClosed(sock)
+				except Exception as e:
+					print("{0}: {1}".format(type(e).__name__,e),file=sys.stderr)
+					traceback.print_tb(e.__traceback__)
+					self._read = False
+					print("SERVER SHUTDOWN")
+					break
 
 	def clientConnectionOpened(self, clientSocket):
 		''' prepare a new connection from a client (frontend or other backend)'''
@@ -151,17 +160,23 @@ class PyCCBackendServer(object):
 	def getConnectionList(self, node):
 		''' return a list with all connection to a specific node
 		    :broadcast for broadcast connections
-		    :frontend for connection from frontends'''
+		    :frontend for connection from frontends
+		    :clients for all connections to connected frontends/other backends'''
 		count = 0
 		if node == ':broadcast': # broadcast connections
 			for con in self._connections['broadcasts']:
 				yield con
 				count = -1
+			return
 		elif node == ':frontend': # connections to frontends
 			for con in self._connections['clients']:
 				if con.getpeername()[0] == '127.0.0.1':
-						count += 1
 						yield con
+			return
+		elif node == ':clients':
+			for con in self._connections['clients']:
+				yield con
+			return
 		else: # other (normal) node
 			for con in self._connections['clients']:
 				if con.partnerNodeId == node:
@@ -189,4 +204,10 @@ class PyCCBackendServer(object):
 
 	def nodeAnnounce(self, package):
 		''' add new relation between network address and node'''
-		self._nodeAddresses[package.connection.partnerNodeId] = package.connection._address[0]
+		if package.connection.partnerNodeId == self._nodeId:
+			return False
+		if package.connection.partnerNodeId in self._nodeAddresses:
+			return False
+		else:
+			self._nodeAddresses[package.connection.partnerNodeId] = package.connection._address[0]
+			return True
