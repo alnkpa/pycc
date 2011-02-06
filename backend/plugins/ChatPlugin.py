@@ -21,7 +21,7 @@ class ChatPlugin(Plugin.EasyPlugin):
 			try:
 				# search for the relevant nodeId
 				accountNodeId = contactPlugin.returnNodeId(name)
-				chatLogPlugin.commandAU_logSendMessage(package,  name)
+				chatLogPlugin.commandAU_logSendMessage(package, name)
 				# change the command so the other backend will know it belongs to it
 				package.command = "recvMessage"
 				# send the message to every connection belonging to the nodeId

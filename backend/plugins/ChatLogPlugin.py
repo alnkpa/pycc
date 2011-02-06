@@ -1,52 +1,59 @@
 import Plugin
+import pickle
 
 class ChatLogPlugin(Plugin.EasyPlugin):
 	'''is used to temporarily log messages send and received'''
 	
 	
 	def init(self):
-		log = []
-#		# search for the running contactPlugin
-#		contactPlugin = self.PyCCManager.searchPlugin("ContactPlugin")
-#		accounts = contactPlugin.commandR_getAccounts("spamAndEggs").split(",")
-#		# 
-#		for i in range(0,len(accounts)):
-#			accounts[i] = [accounts[i].split(":")[0]]
+		try:
+			with open("chatlog", "rb") as logfile:
+				# unpickles the logfile so that logs from former chats will be
+				# saved to
+				self.log = pickle.load(logfile)
+		except:
+			self.log = []
 
 	def commandAU_logSendMessage(self, package, username):
 		'''will log a send Message'''
 		i = self.isUserLogged(username)
 		try:
 			if i:
-				log[i].append("send "+package.data)
+				self.log[i].append("send "+package.data)
 			else:
-				log.append([username,  "send "+package.data])
+				self.log.append([username, "send "+package.data])
 		except:
-			log[0] = [username, "send "+package.data]
+			self.log[0] = [username, "send "+package.data]
 
 	def commandAU_logRecvMessage(self, package, username):
 		'''will log a received Message'''
 		i = self.isUserLogged(username)
 		try:
 			if i:
-				log[i].append("recv "+package.data)
+				self.log[i].append("recv "+package.data)
 			else:
-				log.append([username,  "recv "+package.data])
+				self.log.append([username,  "recv "+package.data])
 		except:
-			log[0] = [username, "recv "+package.data]
+			self.log[0] = [username, "recv "+package.data]
 
 	def commandAR_showLogFor(self, package, username):
 		i = self.isUserLogged(username)
 		try:
 			if i:
-				return log[i]
+				for message in self.log[i]:
+					stringtoreturn += message + "\n"
+				return stringtoreturn
 			else:
 				return None
 		except:
 				return None
 
 	def isUserLogged(self, username):
-		for i in range(0,len(log)):
-			if log[i][0] == username:
+		for i in range(0,len(self.log)):
+			if self.log[i][0] == username:
 				return i
 		return False
+		
+	def shutdown(self):
+		with open("chatlog", "wb") as logfile:
+			pickle.dump(self.log, logfile, pickle.HIGHEST_PROTOCOL)
