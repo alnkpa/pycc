@@ -18,7 +18,7 @@ class ContactPlugin(Plugin.EasyPlugin):
 						- can be called by any package from anywhere in the
 							moment
 		deleteAccount	- needs an AccountName to be deleted
-						- can be called by any package from anywhere in the
+						- can be called by any package from anywhere at the
 							moment
 		getAccounts		- returns all Accounts of the user
 						- does not need anything
