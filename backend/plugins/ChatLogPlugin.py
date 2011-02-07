@@ -32,6 +32,7 @@ class ChatLogPlugin(Plugin.EasyPlugin):
 			self.log.append([username,  "recv "+package.data])
 
 	def commandAR_showLogFor(self, package, username):
+		'''returns an log for a specific user with newlines "\n" escaped'''
 		i = self.isUserLogged(username)
 		if i is not None:
 			stringtoreturn = ""
