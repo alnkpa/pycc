@@ -14,6 +14,7 @@ nodeId
 
 import sys
 import socket
+import re
 import Plugin
 
 
@@ -85,7 +86,7 @@ class Broadcast(Plugin.Plugin):
 	def escape(b):
 		'''escape the bytes newline'''
 		if type(b) is str:
-			return b.translate({'\\': '\\\\', '\n': '\\n'})
+			return re.sub('(\\\\)|(\n)', lambda m, s= {'\\':'\\\\', '\n': '\\n'}: (s[m.group()]), b)
 		b2= b''
 		for b in b:
 			if b == b'\n':
@@ -100,7 +101,7 @@ class Broadcast(Plugin.Plugin):
 	def unescape(b):
 		'''revert the escapeing of the newline'''
 		if type(b) is str:
-			return b.translate({b'\\n': b'\n', b'\\\\': b'\\'})
+			return re.sub('\\\\(.)', lambda m, s= {'n': '\n'}: s.get(m.group(1), m.group(1)), b)
 		b2= last= b''
 		for b in b:
 			if b == b'\\':
