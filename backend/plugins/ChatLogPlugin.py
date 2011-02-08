@@ -15,7 +15,9 @@ class ChatLogPlugin(Plugin.EasyPlugin):
 		-	logRecvMessage:	takes "username" as an argument and the message in
 							package.data
 							"username" should be the user, the message was received
-							to'''
+							to
+		-	showLogFor:		takes "username" as an arguments
+							returns the specific log for the user'''
 	
 	
 	def init(self):
@@ -52,7 +54,9 @@ class ChatLogPlugin(Plugin.EasyPlugin):
 	def commandAR_showLogFor(self, package, username):
 		'''returns an log for a specific user with newlines "\n" escaped
 		use Broadcast.Broadcast.unescape to unescape the message
-		any real newline indicates a new message'''
+		any real newline indicates a new message
+		Format for one line:
+			send|recv <time> <escapedmessage>'''
 		i = self.isUserLogged(username)
 		if i is not None:
 			stringtoreturn = ""
