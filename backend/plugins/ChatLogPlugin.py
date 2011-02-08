@@ -1,9 +1,21 @@
 import Plugin
 import pickle
 import Broadcast
+import time
 
 class ChatLogPlugin(Plugin.EasyPlugin):
-	'''is used to temporarily log messages send and received'''
+	'''is used to temporarily log messages send and received
+	writes to "chatlog" if closed and reads from it if initialized
+	
+	implements the following methods:
+		-	logSendMessage:	takes "username" as an argument and the message in
+							package.data
+							"username" should be the user, the message was send
+							to
+		-	logRecvMessage:	takes "username" as an argument and the message in
+							package.data
+							"username" should be the user, the message was received
+							to'''
 	
 	
 	def init(self):
@@ -17,28 +29,35 @@ class ChatLogPlugin(Plugin.EasyPlugin):
 
 	def commandAU_logSendMessage(self, package, username):
 		'''will log a send Message'''
+		# get index of user in log
 		i = self.isUserLogged(username)
+		# if user is already logged
 		if i is not None:
-			self.log[i].append("send "+package.data)
+			# save the message in the regarding sublist
+			self.log[i].append("send "+str(time.time())+" "+package.data)
+		# if not
 		else:
-			self.log.append([username, "send "+package.data])
+			# make a new sublist
+			self.log.append([username, "send "+str(time.time())+" "+package.data])
 
+	# for commands see above
 	def commandAU_logRecvMessage(self, package, username):
 		'''will log a received Message'''
 		i = self.isUserLogged(username)
 		if i is not None:
-			self.log[i].append("recv "+package.data)
+			self.log[i].append("recv "+str(time.time())+" "+package.data)
 		else:
-			self.log.append([username,  "recv "+package.data])
+			self.log.append([username,  "recv "+str(time.time())+" "+package.data])
 
 	def commandAR_showLogFor(self, package, username):
-		'''returns an log for a specific user with newlines "\n" escaped'''
+		'''returns an log for a specific user with newlines "\n" escaped
+		use Broadcast.Broadcast.unescape to unescape the message
+		any real newline indicates a new message'''
 		i = self.isUserLogged(username)
 		if i is not None:
 			stringtoreturn = ""
 			for message in self.log[i][1:]:
 				stringtoreturn += Broadcast.Broadcast.escape(message) + "\n"
-			print(stringtoreturn)
 			return stringtoreturn
 		else:
 			return None
