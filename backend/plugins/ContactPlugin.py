@@ -85,6 +85,16 @@ class ContactPlugin(Plugin.EasyPlugin):
 			string += str(self.contacts[contact])+"\n\n"
 		return string[:-2] # remove last \n\n
 
+	def commandR_listContactStates(self, package):
+		''' return a list with username and state of all contacts'''
+		result = ''
+		for account in self.contacts:
+			result += '{username}: {state}\n'.format(
+				username=self.contacts[account].get('username',\
+				self.contacts[account].userhash), state = self.contacts[account].state)
+		return result[:-1]
+
+
 	def command_accountList(self,  package):
 		print(self.contacts)
 
