@@ -33,12 +33,6 @@ PluginClass.priority
 		'''this is called once to initialize the plugin'''
 		pass
 
-
-	#This method sends a command to the PyCCManager
-	def sendCommand(self, command, data):
-		'''send a command to the PyCCManager - not yet ready for use'''
-		self.PyCCManager.send(command, data)
-
 	#Any command send from the PyCCManager will be here
 	def recvCommand(self, con):
 		'''all commands for this plugin are passed to this function
