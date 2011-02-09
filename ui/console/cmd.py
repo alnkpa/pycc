@@ -52,6 +52,15 @@ class pyccConsole(cmd.Cmd):
 		return True
 
 
+	def do_list(self, args):
+		''' sends message to other chat user'''
+		self.todoQueue.put(('list', None))
+		self.notifyEvent.set()
+		self.logicThread.syncRequestEvent.clear()
+		if not self.logicThread.syncRequestEvent.wait(0.2):
+			print('request timed out')
+
+
 	def do_sendMessage(self, args):
 		''' sends message to other chat user'''
 		args = args.split(' ')
