@@ -44,7 +44,7 @@ defaultSocketArguments
 	default arguments for our socket
 '''
 	serverStartCommand= ['../bin/pyccBackend.py']
-	serverPort= 6554
+	serverPort= 62533
 	serverStartupTries= 1000
 	defaultSocketArguments= (socket.AF_INET, socket.SOCK_STREAM)
 	

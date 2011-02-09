@@ -8,7 +8,7 @@ class EchoPlugin(Plugin.EasyPlugin):
 		''' echo the package '''
 		package.connection.sendResponse(package)
 
-	def command_echoToFrontend(self, package):
+	def command_frontendEcho(self, package):
 		''' echo this package to the frondends'''
 		for connection in self.backend.getNodeConnections(":frontend"):
 			connection.sendResponse(package)

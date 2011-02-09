@@ -26,19 +26,6 @@ class ConnectionPlugin(Plugin.EasyPlugin):
 		else:
 			return False
 
-	def commandA_relay(self, package, node): # command with argument parsing
-		args=package.command.split(' ')
-		if len(args)!=2:
-			return None
-		else:
-			for con in self.backend.getNodeConnections(args[1]):
-				data = package.data.decode('utf8').split('\n')
-				newPackage = connection.PyCCPackage()
-				newPackage.command = data[0]
-				newPackage.data = "\n".join(data[1:])
-				con.sendRequest(newPackage,callback = self.handleResponse,
-					callbackExtraArg = package)
-
 	def handleResponse(self, newPackage, orgPackage = None):
 		newPackage.handle = orgPackage.handle
 		newPackage.command = orgPackage.command

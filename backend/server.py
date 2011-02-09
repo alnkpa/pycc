@@ -67,7 +67,7 @@ class PyCCBackendServer(object):
 		''' handle network communication endless'''
 		while self._read: # should i read more?
 			# wait for new data to read:
-			toReadConnections, toWriteConnections, priorityConnectsions = select.select(
+			toReadConnections, toWriteConnections, priorityConnections = select.select(
 				self._connections['tcpListen'] + self._connections['udpListen']
 				+ self._connections['broadcasts'] + self._connections['clients'], [], [])
 
